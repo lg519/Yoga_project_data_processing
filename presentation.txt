@@ -1,0 +1,9 @@
+talk about MVCs for dolphin not being good
+
+remember to talk about detached electrodes
+
+say that MVC was done only on one side so bad
+
+say that you will make the data collection script run in the background
+
+bring something to take notes into the meeting
