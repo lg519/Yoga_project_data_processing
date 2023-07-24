@@ -54,6 +54,10 @@ if data.shape[0] < num_channels_to_plot:
     )
     num_channels_to_plot = data.shape[0]
 
+# Create time array for x-axis, considering sampling frequency
+sampling_frequency = 2000  # Hz
+time = np.arange(0, len(data[0])) / sampling_frequency
+
 # Create a new figure
 fig, axs = plt.subplots(
     num_channels_to_plot, 1, sharex=True, figsize=(10, 2 * num_channels_to_plot)
@@ -62,14 +66,12 @@ fig.suptitle(f"{participant_type} - {yoga_position}", fontsize=14, weight="bold"
 
 # Plot the data in separate subplots
 for i in range(num_channels_to_plot):
-    axs[i].plot(data[i, :])
+    axs[i].plot(time, data[i, :])
     axs[i].set_title(f"Channel {i+1} - {channel_names[i]}")
     axs[i].set_ylabel("Amplitude (mV)")
 
-axs[-1].set_xlabel("Time")
+axs[-1].set_xlabel("Time (s)")
 
 # Show the plot
-
 plt.tight_layout()
-
 plt.show()
