@@ -2,23 +2,28 @@ import os
 import shutil
 from collections import defaultdict
 from tkinter import Tk
-from tkinter.filedialog import askdirectory, askopenfilename
+from tkinter.filedialog import askdirectory
 
 
 def rename_files():
     Tk().withdraw()  # to hide the small tk window
 
-    # open the dialog to select text file and folders
-    txt_file = askopenfilename(
-        title="Select the .txt file containing the list of yoga poses"
-    )
+    # open the dialog to select folders
     src_folder = askdirectory(title="Select the Source Folder with .otb+ files")
-    dest_folder = askdirectory(
-        title="Select the Destination Folder to save renamed files"
-    )
 
     # Extract the participant type from the source folder's name
+    src_folder_basename = os.path.basename(src_folder)
     participant_type = os.path.basename(src_folder).split("_")[0]
+
+    # Get parent folder of source
+    parent_folder = os.path.dirname(src_folder)
+
+    # Create a new destination folder under the parent folder
+    dest_folder = os.path.join(parent_folder, src_folder_basename + "_MAT")
+    os.makedirs(dest_folder, exist_ok=True)
+
+    # Set the path for the yoga poses txt file
+    txt_file = os.path.join(src_folder, "yoga.txt")
 
     # Read the yoga poses from the text file
     with open(txt_file, "r") as f:
@@ -26,7 +31,9 @@ def rename_files():
 
     # Get the list of EMG recording files
     files = [
-        f for f in os.listdir(src_folder) if os.path.isfile(os.path.join(src_folder, f))
+        f
+        for f in os.listdir(src_folder)
+        if os.path.isfile(os.path.join(src_folder, f)) and f.endswith(".otb+")
     ]
     print(files)
 
@@ -48,7 +55,7 @@ def rename_files():
         # Extract the date and time from the original filename
         date_time = filename[
             -19:-5
-        ]  # year (4 digits), month (2 digits), day (2 digits), hour (2 digits), minutes (2 digits), seconds (2 digits)
+        ]  # year, month, day, hour, minutes, seconds in a specific format
 
         # Format the date and time
         formatted_date = "_".join([date_time[6:8], date_time[4:6], date_time[0:4]])

@@ -61,5 +61,8 @@ for idx = 1:length(files)
     end
     
     rmdir('tmpopen','s');
+    
+    % Delete original OTB+ file after conversion
+    delete(fullfile(PATHNAME, FILENAME));
 end
 end
