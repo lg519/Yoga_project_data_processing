@@ -16,6 +16,7 @@ from filtering import (
     plot_fft_with_filter_values,
 )
 from rms_envelope import compute_rms_envelope, rectify_signal, plot_signal_and_envelope
+from low_pass_filtering import butter_lowpass_filter, plot_signal_with_envelope
 
 
 def main():
@@ -55,20 +56,37 @@ def main():
         time = np.arange(0, len(data[i, :])) / sampling_frequency
         plot_signal_comparison_in_time_domain(time, data[i, :], filtered_data, axs2, i)
 
-    # Step 4: Apply RMS envelope to the filtered signal
+    # # Step 4: Apply RMS envelope to the filtered signal
+    # fig3, axs3 = plt.subplots(
+    #     num_channels_to_plot, 1, figsize=(10, 2 * num_channels_to_plot)
+    # )
+    # fig3.suptitle(
+    #     f"Rectified Signal and RMS Envelope - {participant_type} - {yoga_position}",
+    #     fontsize=14,
+    #     weight="bold",
+    # )
+
+    # for i in range(num_channels_to_plot):
+    #     rectified_signal = rectify_signal(filtered_data)
+    #     rms_envelope = compute_rms_envelope(rectified_signal, window_size=int(50))
+    #     plot_signal_and_envelope(time, rectified_signal, rms_envelope, axs3, i)
+
+    # Step 4: Rectify the filtered signal and apply low-pass filter to extract the envelope
     fig3, axs3 = plt.subplots(
         num_channels_to_plot, 1, figsize=(10, 2 * num_channels_to_plot)
     )
     fig3.suptitle(
-        f"Rectified Signal and RMS Envelope - {participant_type} - {yoga_position}",
+        f"Filtered Signal and Envelope - {participant_type} - {yoga_position}",
         fontsize=14,
         weight="bold",
     )
 
     for i in range(num_channels_to_plot):
-        rectified_signal = rectify_signal(filtered_data)
-        rms_envelope = compute_rms_envelope(rectified_signal, window_size=int(50))
-        plot_signal_and_envelope(time, rectified_signal, rms_envelope, axs3, i)
+        rectified_data = rectify_signal(filtered_data)
+        envelope = butter_lowpass_filter(
+            rectified_data, cutoff=5, sampling_frequency=sampling_frequency
+        )
+        plot_signal_with_envelope(time, rectified_data, envelope, axs3, i)
 
     plt.show()
 
