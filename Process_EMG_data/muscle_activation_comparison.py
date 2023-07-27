@@ -11,6 +11,8 @@ from apply_processing_pipeline import apply_processing_pipeline
 from global_variables import sampling_frequency
 import matplotlib.patches as mpatches
 
+from global_variables import num_channels_to_plot, channel_names
+
 
 def plot_data(
     activation_means,
@@ -63,18 +65,6 @@ def plot_data(
     plt.tight_layout()
     plt.show()
 
-
-# Define channel names
-channel_names = [
-    "Upper Trap (Right side)",
-    "Middle Trap (Right side)",
-    "Lower Trap (Right side)",
-    "Serratus Anterior (Right side)",
-    "Upper Trap (Left side)",
-    "Middle Trap (Left side)",
-    "Lower Trap (Left side)",
-    "Serratus Anterior (Left side)",
-]
 
 # Hide the main tkinter window
 root = Tk()

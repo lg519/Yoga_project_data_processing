@@ -54,7 +54,12 @@ def apply_processing_pipeline(data, sampling_frequency, mvc):
         # plt.show()
 
         # print type of envelopes
-        normalized_signal[i, :] = envelopes[i, :] / mvc[i]
+        # normalized_signal[i, :] = envelopes[i, :] / mvc[i]
+        if mvc[i] != 0:
+            normalized_signal[i, :] = envelopes[i, :] / mvc[i]
+        else:
+            raise ValueError(f"Error: Division by zero encountered at index {i}")
+
         # visualize the normalized signal add title
 
         # plt.plot(normalized_signal[i, :])

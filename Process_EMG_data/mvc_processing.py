@@ -14,6 +14,8 @@ from global_variables import (
 )
 import matplotlib.pyplot as plt
 
+from global_variables import num_channels_to_plot
+
 
 def choose_mvc_file():
     """
@@ -71,7 +73,7 @@ def calculate_mvc_for_each_channel():
     mvc_values = []
     fig, axs = plt.subplots(mvc_data.shape[0], 1, figsize=(10, 2 * mvc_data.shape[0]))
     fig.suptitle("MVC Envelopes", fontsize=14, weight="bold")
-    for i in range(mvc_data.shape[0]):  # Iterating over channels
+    for i in range(num_channels_to_plot):  # Iterating over channels
         xf, yf = compute_fft(mvc_data[i, :], sampling_frequency)
         highcut, lowcut = find_filter_values(yf)
         # apply bandpass filter
