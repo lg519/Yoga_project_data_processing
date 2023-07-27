@@ -9,6 +9,11 @@ from global_variables import (
 )
 
 
+def rectify_signal(signal):
+    """Rectify the given signal (take absolute value)."""
+    return np.abs(signal)
+
+
 def butter_lowpass_filter(data, cutoff, sampling_frequency, order=5):
     nyquist = 0.5 * sampling_frequency
     cutoff_norm = cutoff / nyquist
