@@ -1,5 +1,6 @@
 import os
 import shutil
+import re
 from collections import defaultdict
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
@@ -29,14 +30,16 @@ def rename_files():
     with open(txt_file, "r") as f:
         yoga_poses = f.read().splitlines()
 
-    # Get the list of EMG recording files
+    # Get the list of EMG recording files, skip any files that contain "MVC"
     files = [
         f
         for f in os.listdir(src_folder)
-        if os.path.isfile(os.path.join(src_folder, f)) and f.endswith(".otb+")
+        if os.path.isfile(os.path.join(src_folder, f))
+        and f.endswith(".otb+")
+        and "MVC" not in f
     ]
-    print(files)
 
+    print(f"files = {files}")
     # Perform a sanity check
     if len(yoga_poses) != len(files):
         print("len(yoga_poses) = ", len(yoga_poses))
@@ -52,8 +55,9 @@ def rename_files():
 
     # Iterate through each file and rename
     for i, filename in enumerate(files):
+        filename_without_number = re.sub(r"_\d+\.", ".", filename)
         # Extract the date and time from the original filename
-        date_time = filename[
+        date_time = filename_without_number[
             -19:-5
         ]  # year, month, day, hour, minutes, seconds in a specific format
 
