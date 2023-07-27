@@ -9,16 +9,42 @@ from collections import defaultdict
 from mvc_processing import calculate_mvc_for_each_channel
 from apply_processing_pipeline import apply_processing_pipeline
 from global_variables import sampling_frequency
+import matplotlib.patches as mpatches
 
 
-def plot_data(activation_means, exercise_names, channel_name, participant_type):
+def plot_data(
+    activation_means,
+    exercise_names,
+    channel_name,
+    participant_type,
+    asymmetrical_exercises=["side_angle", "side_plank", "warrior2"],
+):
     # Sort the data by exercise names
     sort_indices = np.argsort(exercise_names)
     sorted_exercise_names = np.array(exercise_names)[sort_indices]
     sorted_activation_means = np.array(activation_means)[sort_indices]
 
+    # Create color list based on exercise name
+    color_list = []
+    for name in sorted_exercise_names:
+        if (
+            "left" in name.lower()
+            or "right" in name.lower()
+            or name in asymmetrical_exercises
+        ):
+            color_list.append("r")  # Red for asymmetrical
+        else:
+            color_list.append("b")  # Blue for symmetrical
+
     # Generate a bar graph of the average muscle activation
-    plt.bar(np.arange(len(sorted_exercise_names)), sorted_activation_means)
+    bars = plt.bar(
+        np.arange(len(sorted_exercise_names)), sorted_activation_means, color=color_list
+    )
+
+    # Create a legend
+    symmetrical_patch = mpatches.Patch(color="blue", label="Symmetrical")
+    asymmetrical_patch = mpatches.Patch(color="red", label="Asymmetrical")
+    plt.legend(handles=[symmetrical_patch, asymmetrical_patch])
 
     # Label the bars with the exercise names
     plt.xticks(
@@ -28,7 +54,7 @@ def plot_data(activation_means, exercise_names, channel_name, participant_type):
     )
 
     # Set the y-axis label
-    plt.ylabel("Muscle activation (% of MVC)")
+    plt.ylabel("Muscle activation (MVC fraction)")
 
     # Set the title
     plt.title(f"Participant Type: {participant_type}, Channel: {channel_name}")
@@ -44,6 +70,10 @@ channel_names = [
     "Middle Trap (Right side)",
     "Lower Trap (Right side)",
     "Serratus Anterior (Right side)",
+    "Upper Trap (Left side)",
+    "Middle Trap (Left side)",
+    "Lower Trap (Left side)",
+    "Serratus Anterior (Left side)",
 ]
 
 # Hide the main tkinter window

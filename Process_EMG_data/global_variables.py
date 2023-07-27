@@ -1,5 +1,5 @@
 # Number of channels to plot
-num_channels_to_plot = 4  # change this to the number of channels you want to plot
+num_channels_to_plot = 8  # change this to the number of channels you want to plot
 
 # Define channel names
 channel_names = [
