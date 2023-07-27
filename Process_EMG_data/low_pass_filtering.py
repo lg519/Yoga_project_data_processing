@@ -19,7 +19,7 @@ def butter_lowpass_filter(data, cutoff, sampling_frequency, order=5):
 
 def plot_signal_with_envelope(time, data, envelope, axs, channel):
     """Plot the given signal and its envelope."""
-    axs[channel].plot(time, data, label="Filtered Signal")
+    axs[channel].plot(time, data, label="Rectified Signal")
     axs[channel].plot(time, envelope, label="Envelope (low-pass 5Hz)")
     axs[channel].set_title(f"Channel {channel+1} - {channel_names[channel]}")
     axs[channel].set_xlabel("Time (s)")

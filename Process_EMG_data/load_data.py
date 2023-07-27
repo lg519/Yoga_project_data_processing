@@ -13,13 +13,43 @@ from global_variables import (
 )
 
 
+def extract_window(data, sampling_frequency, window_size_seconds=3):
+    """
+    Extract a window from the provided signal data for each channel.
+
+    Args:
+        data (np.array): The input signal data. The first dimension is channels, and the second is time.
+        sampling_frequency (int): The sampling frequency of the signal.
+        window_size_seconds (int): The desired window size in seconds.
+
+    Returns:
+        windowed_data (np.array): The windowed data. The first dimension is channels, and the second is time.
+    """
+    # Calculate the number of samples in the window
+    window_size_samples = window_size_seconds * sampling_frequency
+
+    # Extract the middle index of the data
+    middle_index = data.shape[1] // 2
+
+    # Calculate the start and end indices of the window
+    start_index = middle_index - window_size_samples // 2
+    end_index = middle_index + window_size_samples // 2
+
+    # Extract the window for each channel
+    windowed_data = data[:, start_index:end_index]
+
+    return windowed_data
+
+
 def load_data():
     # Hide the main tkinter window
     root = Tk()
     root.withdraw()
 
     # Open a file dialog
-    file_path = filedialog.askopenfilename(filetypes=[("MAT files", "*.mat")])
+    file_path = filedialog.askopenfilename(
+        title="Select recording file", filetypes=[("MAT files", "*.mat")]
+    )
 
     # Get the filename without the extension
     filename = os.path.splitext(os.path.basename(file_path))[0]
@@ -39,8 +69,13 @@ def load_data():
 
     # Assuming 'data' is the key for the data you want
     data = mat["data"]
+    print(f"data.shape: {data.shape}")
 
-    return data, participant_type, yoga_position, filename
+    # Extract a 3-second window from the data
+    windowed_data = extract_window(data, sampling_frequency)
+    print(f"windowed_data.shape: {windowed_data.shape}")
+
+    return windowed_data, participant_type, yoga_position, filename
 
 
 def plot_data(

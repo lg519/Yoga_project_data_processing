@@ -17,11 +17,39 @@ from filtering import (
 )
 from rms_envelope import compute_rms_envelope, rectify_signal, plot_signal_and_envelope
 from low_pass_filtering import butter_lowpass_filter, plot_signal_with_envelope
+from mvc_processing import (
+    calculate_mvc_for_each_channel,
+    choose_mvc_file,
+    calculate_mvc,
+)
+
+
+def plot_normalized_signal(time, normalized_signal, axs, channel_index):
+    """
+    Plot the normalized signal.
+
+    Args:
+        time (np.array): Time vector.
+        normalized_signal (np.array): The normalized signal to plot.
+        axs (matplotlib.axes.Axes): The Axes instance to plot on.
+        channel_index (int): The index of the current channel.
+
+    """
+    axs[channel_index].plot(time, normalized_signal)
+    axs[channel_index].set_xlabel("Time (s)")
+    axs[channel_index].set_ylabel("Normalized Amplitude")
+    axs[channel_index].set_title(
+        f"Channel {channel_index + 1} - {channel_names[channel_index]} - Normalized Signal"
+    )
 
 
 def main():
     # Step 1: Load data
     data, participant_type, yoga_position, filename = load_data()
+
+    # Step 1.5: Choose MVC file and calculate MVC
+    mvc = calculate_mvc_for_each_channel()
+    print(f"mvc: {mvc}")
 
     # Step 2: Apply FFT and visualize it
     fig1, axs1 = plt.subplots(
@@ -48,28 +76,19 @@ def main():
         weight="bold",
     )
 
+    # Initialize an array to store filtered data for each channel
+    filtered_data = np.zeros((num_channels_to_plot, len(data[0, :])))
+
     for i in range(num_channels_to_plot):
         highcut, lowcut = find_filter_values(yf)
-        filtered_data = butter_bandpass_filter(
+        filtered_channel_data = butter_bandpass_filter(
             data[i, :], lowcut, highcut, sampling_frequency
         )
+        filtered_data[i, :] = filtered_channel_data
         time = np.arange(0, len(data[i, :])) / sampling_frequency
-        plot_signal_comparison_in_time_domain(time, data[i, :], filtered_data, axs2, i)
-
-    # # Step 4: Apply RMS envelope to the filtered signal
-    # fig3, axs3 = plt.subplots(
-    #     num_channels_to_plot, 1, figsize=(10, 2 * num_channels_to_plot)
-    # )
-    # fig3.suptitle(
-    #     f"Rectified Signal and RMS Envelope - {participant_type} - {yoga_position}",
-    #     fontsize=14,
-    #     weight="bold",
-    # )
-
-    # for i in range(num_channels_to_plot):
-    #     rectified_signal = rectify_signal(filtered_data)
-    #     rms_envelope = compute_rms_envelope(rectified_signal, window_size=int(50))
-    #     plot_signal_and_envelope(time, rectified_signal, rms_envelope, axs3, i)
+        plot_signal_comparison_in_time_domain(
+            time, data[i, :], filtered_channel_data, axs2, i
+        )
 
     # Step 4: Rectify the filtered signal and apply low-pass filter to extract the envelope
     fig3, axs3 = plt.subplots(
@@ -81,12 +100,32 @@ def main():
         weight="bold",
     )
 
+    # Initialize an array to store envelopes
+    envelopes = np.zeros((num_channels_to_plot, len(filtered_channel_data)))
+
     for i in range(num_channels_to_plot):
-        rectified_data = rectify_signal(filtered_data)
+        rectified_data = rectify_signal(filtered_data[i, :])
         envelope = butter_lowpass_filter(
             rectified_data, cutoff=5, sampling_frequency=sampling_frequency
         )
+        # Store the generated envelope in the array
+        envelopes[i, :] = envelope
+
         plot_signal_with_envelope(time, rectified_data, envelope, axs3, i)
+
+    # Step 5: Normalize using MVC and visualize normalized signal
+    fig4, axs4 = plt.subplots(
+        num_channels_to_plot, 1, figsize=(10, 2 * num_channels_to_plot)
+    )
+    fig4.suptitle(
+        f"Normalized Signal - {participant_type} - {yoga_position}",
+        fontsize=14,
+        weight="bold",
+    )
+
+    for i in range(num_channels_to_plot):
+        normalized_signal = envelopes[i, :] / mvc[i]
+        plot_normalized_signal(time, normalized_signal, axs4, i)
 
     plt.show()
 
