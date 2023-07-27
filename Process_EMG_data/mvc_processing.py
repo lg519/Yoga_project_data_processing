@@ -1,5 +1,5 @@
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilenames
 from load_data import load_data
 from filtering import butter_bandpass_filter, find_filter_values
 from rms_envelope import compute_rms_envelope
@@ -17,25 +17,29 @@ import matplotlib.pyplot as plt
 from global_variables import num_channels_to_plot
 
 
-def choose_mvc_file():
+def choose_mvc_files():
     """
-    Open a file dialog to choose the MVC file, load the selected file, and return the loaded data.
+    Open a file dialog to choose the MVC files, load the selected files, and return the loaded data.
 
     Returns:
-        data (np.array): The loaded MVC data.
+        datas (list of np.array): The loaded MVC data for each file.
     """
     root = Tk()
     root.withdraw()  # Hide the main window
-    filename = filedialog.askopenfilename(title="Select MVC File")
+    filenames = filedialog.askopenfilenames(title="Select MVC Files")
     root.destroy()  # Destroy the main window
 
-    # Load the data from the .mat file
-    mat = loadmat(filename)
+    datas = []
+    for filename in filenames:
+        # Load the data from the .mat file
+        mat = loadmat(filename)
 
-    # Assuming 'data' is the key for the data you want
-    data = mat["data"]
+        # Assuming 'data' is the key for the data you want
+        data = mat["data"]
 
-    return data
+        datas.append(data)
+
+    return datas
 
 
 def calculate_mvc(filtered_mvc_data, sampling_frequency):
@@ -56,43 +60,47 @@ def calculate_mvc(filtered_mvc_data, sampling_frequency):
     windowed_data = filtered_mvc_data[start_index:end_index]
 
     # Calculate the MVC value as the average value within the window
-    mvc_value = np.max(windowed_data)
+    mvc_value = np.mean(windowed_data)
 
     return mvc_value
 
 
 def calculate_mvc_for_each_channel():
     """
-    Opens a file picker dialog to select the MVC file and calculates the MVC values for each channel.
+    Opens a file picker dialog to select the MVC files and calculates the MVC values for each channel.
 
     Returns:
-        mvc_values (array): The MVC values for each channel.
+        max_mvc_values (array): The maximum MVC values for each channel across files.
     """
-    mvc_data = choose_mvc_file()
+    mvc_datas = choose_mvc_files()
 
-    mvc_values = []
-    fig, axs = plt.subplots(mvc_data.shape[0], 1, figsize=(10, 2 * mvc_data.shape[0]))
-    fig.suptitle("MVC Envelopes", fontsize=14, weight="bold")
+    max_mvc_values = []
     for i in range(num_channels_to_plot):  # Iterating over channels
-        xf, yf = compute_fft(mvc_data[i, :], sampling_frequency)
-        highcut, lowcut = find_filter_values(yf)
-        # apply bandpass filter
-        filtered_mvc_data = butter_bandpass_filter(
-            mvc_data[i, :], lowcut, highcut, sampling_frequency
-        )
-        # rectify the signal
-        rectified_mvc_data = rectify_signal(filtered_mvc_data)
-        # extract envelpoe
-        mvc_envelope = butter_lowpass_filter(
-            rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
-        )
-        mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
-        mvc_values.append(mvc_value)
-        # Plot MVC envelope for each channel
-        axs[i].plot(mvc_envelope)
-        axs[i].set_title(f"Channel {i+1}")
+        mvc_values = []
+        fig, axs = plt.subplots(len(mvc_datas), 1, figsize=(10, 2 * len(mvc_datas)))
+        fig.suptitle(f"Channel {i+1} MVC Envelopes", fontsize=14, weight="bold")
+        for j, mvc_data in enumerate(mvc_datas):
+            xf, yf = compute_fft(mvc_data[i, :], sampling_frequency)
+            highcut, lowcut = find_filter_values(yf)
+            # apply bandpass filter
+            filtered_mvc_data = butter_bandpass_filter(
+                mvc_data[i, :], lowcut, highcut, sampling_frequency
+            )
+            # rectify the signal
+            rectified_mvc_data = rectify_signal(filtered_mvc_data)
+            # extract envelpoe
+            mvc_envelope = butter_lowpass_filter(
+                rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
+            )
+            mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
+            mvc_values.append(mvc_value)
+            # Plot MVC envelope for each channel
+            axs[j].plot(mvc_envelope)
+            axs[j].set_title(f"File {j+1}")
 
-    plt.tight_layout()
-    plt.show()
+        max_mvc_values.append(max(mvc_values))
 
-    return np.array(mvc_values)
+        plt.tight_layout()
+        plt.show()
+
+    return np.array(max_mvc_values)
