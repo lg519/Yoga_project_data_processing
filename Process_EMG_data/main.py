@@ -12,11 +12,14 @@ from fft_processing import compute_fft, plot_fft
 from filtering import (
     find_filter_values,
     butter_bandpass_filter,
-    plot_signal_comparison_in_time_domain,
+    plot_raw_signal_vs_filtered_signal,
     plot_fft_with_filter_values,
 )
 from rms_envelope import compute_rms_envelope, rectify_signal, plot_signal_and_envelope
-from low_pass_filtering import butter_lowpass_filter, plot_signal_with_envelope
+from rectify_signal import (
+    butter_lowpass_filter,
+    plot_rectified_signal_vs_envelope,
+)
 from mvc_processing import (
     calculate_mvc_for_each_channel,
     choose_mvc_file,
@@ -86,7 +89,7 @@ def main():
         )
         filtered_data[i, :] = filtered_channel_data
         time = np.arange(0, len(data[i, :])) / sampling_frequency
-        plot_signal_comparison_in_time_domain(
+        plot_raw_signal_vs_filtered_signal(
             time, data[i, :], filtered_channel_data, axs2, i
         )
 
@@ -111,7 +114,7 @@ def main():
         # Store the generated envelope in the array
         envelopes[i, :] = envelope
 
-        plot_signal_with_envelope(time, rectified_data, envelope, axs3, i)
+        plot_rectified_signal_vs_envelope(time, rectified_data, envelope, axs3, i)
 
     # Step 5: Normalize using MVC and visualize normalized signal
     fig4, axs4 = plt.subplots(

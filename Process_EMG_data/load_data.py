@@ -18,7 +18,7 @@ def extract_window(data, sampling_frequency, window_size_seconds=3):
     Extract a window from the provided signal data for each channel.
 
     Args:
-        data (np.array): The input signal data. The first dimension is channels, and the second is time.
+        data (np.array): The input signal data. The first dimension is channels, and the second is samples.
         sampling_frequency (int): The sampling frequency of the signal.
         window_size_seconds (int): The desired window size in seconds.
 
@@ -66,8 +66,6 @@ def load_data():
 
     # Load the data from the .mat file
     mat = loadmat(file_path)
-
-    # Assuming 'data' is the key for the data you want
     data = mat["data"]
     print(f"data.shape: {data.shape}")
 

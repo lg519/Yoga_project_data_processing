@@ -14,14 +14,6 @@ def rectify_signal(signal):
     return np.abs(signal)
 
 
-def butter_lowpass_filter(data, cutoff, sampling_frequency, order=5):
-    nyquist = 0.5 * sampling_frequency
-    cutoff_norm = cutoff / nyquist
-    b, a = butter(order, cutoff_norm, btype="low", analog=False)
-    filtered_data = lfilter(b, a, data)
-    return filtered_data
-
-
 def plot_signal_with_envelope(time, data, envelope, axs, channel):
     """Plot the given signal and its envelope."""
     axs[channel].plot(time, data, label="Rectified Signal")

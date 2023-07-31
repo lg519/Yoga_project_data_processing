@@ -29,3 +29,7 @@ channel_names = [
 
 # Create time array for x-axis, considering sampling frequency
 sampling_frequency = 2000  # Hz
+
+# Set values for bandpass filter
+highcut = 450
+lowcut = 20

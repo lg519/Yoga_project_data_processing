@@ -1,17 +1,11 @@
 from tkinter import Tk
-from tkinter.filedialog import askopenfilenames
 from load_data import load_data
-from filtering import butter_bandpass_filter, find_filter_values
-from rms_envelope import compute_rms_envelope
+from filtering import butter_bandpass_filter, butter_lowpass_filter
 import numpy as np
 from scipy.io import loadmat
 from tkinter import filedialog
-from rms_envelope import rectify_signal
-from low_pass_filtering import butter_lowpass_filter
-from fft_processing import compute_fft
-from global_variables import (
-    sampling_frequency,
-)
+from rectify_signal import rectify_signal
+from global_variables import sampling_frequency, lowcut, highcut
 import matplotlib.pyplot as plt
 
 from global_variables import num_channels_to_plot
@@ -80,8 +74,6 @@ def calculate_mvc_for_each_channel():
         fig, axs = plt.subplots(len(mvc_datas), 1, figsize=(10, 2 * len(mvc_datas)))
         fig.suptitle(f"Channel {i+1} MVC Envelopes", fontsize=14, weight="bold")
         for j, mvc_data in enumerate(mvc_datas):
-            xf, yf = compute_fft(mvc_data[i, :], sampling_frequency)
-            highcut, lowcut = find_filter_values(yf)
             # apply bandpass filter
             filtered_mvc_data = butter_bandpass_filter(
                 mvc_data[i, :], lowcut, highcut, sampling_frequency

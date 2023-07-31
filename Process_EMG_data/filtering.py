@@ -11,15 +11,6 @@ from load_data import load_data
 from fft_processing import compute_fft, plot_fft
 
 
-def find_filter_values(fft_data, threshold=0.1):
-    # Find where the FFT magnitude drops below the threshold
-    # high_pass = np.argmax(np.abs(fft_data) > threshold)
-    # low_pass = len(fft_data) - np.argmax(np.abs(fft_data[::-1]) > threshold)
-    high_pass = 450
-    low_pass = 20
-    return high_pass, low_pass
-
-
 def butter_bandpass_filter(data, lowcut, highcut, sampling_frequency, order=5):
     nyquist = 0.5 * sampling_frequency
     low = lowcut / nyquist
@@ -29,7 +20,15 @@ def butter_bandpass_filter(data, lowcut, highcut, sampling_frequency, order=5):
     return filtered_data
 
 
-def plot_signal_comparison_in_time_domain(time, data, filtered_data, axs, channel):
+def butter_lowpass_filter(data, cutoff, sampling_frequency, order=5):
+    nyquist = 0.5 * sampling_frequency
+    cutoff_norm = cutoff / nyquist
+    b, a = butter(order, cutoff_norm, btype="low", analog=False)
+    filtered_data = lfilter(b, a, data)
+    return filtered_data
+
+
+def plot_raw_signal_vs_filtered_signal(time, data, filtered_data, axs, channel):
     axs[channel].plot(time, data, label="Raw data")
     axs[channel].plot(time, filtered_data, label="Filtered data")
     axs[channel].set_title(f"Channel {channel+1} - {channel_names[channel]}")
@@ -78,6 +77,6 @@ if __name__ == "__main__":
             data[i, :], lowcut, highcut, sampling_frequency
         )
         time = np.arange(0, len(data[i, :])) / sampling_frequency
-        plot_signal_comparison_in_time_domain(time, data[i, :], filtered_data, axs2, i)
+        plot_raw_signal_vs_filtered_signal(time, data[i, :], filtered_data, axs2, i)
 
     plt.show()
