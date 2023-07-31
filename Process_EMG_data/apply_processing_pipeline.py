@@ -2,8 +2,6 @@
 
 from filtering import butter_bandpass_filter, butter_lowpass_filter
 from rectify_signal import rectify_signal
-from mvc_processing import calculate_mvc_for_each_channel
-from normalize_signal import normalize_signal
 import numpy as np
 import matplotlib.pyplot as plt
 

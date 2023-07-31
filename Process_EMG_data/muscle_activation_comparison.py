@@ -11,7 +11,7 @@ from apply_processing_pipeline import apply_processing_pipeline
 from global_variables import sampling_frequency
 import matplotlib.patches as mpatches
 
-from global_variables import num_channels_to_plot, channel_names
+from global_variables import channel_names
 
 
 def plot_data(
