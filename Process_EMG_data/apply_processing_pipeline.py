@@ -7,15 +7,15 @@ from amplifier_config import highcut, lowcut
 
 def apply_processing_pipeline(data, sampling_frequency, mvc):
     """
-    Process the raw EMG data and return the normalized signal for each channel.
+    Process the raw EMG data and return the normalized signal.
 
     Args:
-        data (np.array): The raw EMG data. The first dimension is channels, and the second is time.
+        data (np.array): The raw EMG data.
         sampling_frequency (int): The sampling frequency of the signal.
-        mvc (array): The MVC values for each channel.
+        mvc (array): The MVC value for the channel considered.
 
     Returns:
-        normalized_signal (np.array): The normalized signal for each channel.
+        normalized_signal (np.array): The normalized signal .
     """
 
     # Apply the bandpass filter

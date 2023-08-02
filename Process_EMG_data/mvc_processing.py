@@ -4,7 +4,7 @@ import numpy as np
 from scipy.io import loadmat
 from tkinter import filedialog
 from rectify_signal import rectify_signal
-from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_config
+from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_names
 import matplotlib.pyplot as plt
 import fnmatch
 import os
@@ -89,14 +89,14 @@ def calculate_mvc_for_each_channel(directory_path):
         max_mvc_values (array): The maximum MVC values for each channel across files.
     """
     mvc_datas = get_mvc_files(directory_path)
-    channel_names = get_channel_config(directory_path)
+    channel_names = get_channel_names(directory_path)
     num_channels = len(channel_names)
 
     max_mvc_values = []
     for i in range(num_channels):  # Iterating over channels
         mvc_values = []
-        fig, axs = plt.subplots(len(mvc_datas), 1, figsize=(10, 2 * len(mvc_datas)))
-        fig.suptitle(f"Channel {i+1} MVC Envelopes", fontsize=14, weight="bold")
+        # fig, axs = plt.subplots(len(mvc_datas), 1, figsize=(10, 2 * len(mvc_datas)))
+        # fig.suptitle(f"Channel {i+1} MVC Envelopes", fontsize=14, weight="bold")
         for j, mvc_data in enumerate(mvc_datas):
             # apply bandpass filter
             filtered_mvc_data = butter_bandpass_filter(
@@ -110,13 +110,13 @@ def calculate_mvc_for_each_channel(directory_path):
             )
             mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
             mvc_values.append(mvc_value)
-            # Plot MVC envelope for each channel
-            axs[j].plot(mvc_envelope)
-            axs[j].set_title(f"File {j+1}")
+            # # Plot MVC envelope for each channel
+            # axs[j].plot(mvc_envelope)
+            # axs[j].set_title(f"File {j+1}")
 
         max_mvc_values.append(max(mvc_values))
 
-        plt.tight_layout()
-        plt.show()
+        # plt.tight_layout()
+        # plt.show()
 
     return np.array(max_mvc_values)
