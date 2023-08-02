@@ -1,6 +1,3 @@
-# Number of channels to plot
-num_channels_to_plot = 4  # change this to the number of channels you want to plot
-
 # Define channel names
 # channel_names = [
 #     "Upper Trap (Right side)",
@@ -20,12 +17,24 @@ num_channels_to_plot = 4  # change this to the number of channels you want to pl
 #     "lower trap (Left side)",
 #     "lower trap (Right side)",
 # ]
-channel_names = [
-    "Upper Trap (Right side)",
-    "Middle Trap (Right side)",
-    "Lower Trap (Right side)",
-    "Serratus Anterior (Right side)",
-]
+# channel_names = [
+#     "Upper Trap (Right side)",
+#     "Middle Trap (Right side)",
+#     "Lower Trap (Right side)",
+#     "Serratus Anterior (Right side)",
+# ]
+
+import os
+
+
+def get_channel_config(directory_path):
+    with open(os.path.join(directory_path, "channel_config.txt"), "r") as file:
+        lines = file.readlines()
+
+    # strip newline characters
+    channel_names = [line.strip() for line in lines]
+    return channel_names
+
 
 # Create time array for x-axis, considering sampling frequency
 sampling_frequency = 2000  # Hz

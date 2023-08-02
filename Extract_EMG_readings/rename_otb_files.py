@@ -30,13 +30,11 @@ def rename_files():
     with open(txt_file, "r") as f:
         yoga_poses = f.read().splitlines()
 
-    # Get the list of EMG recording files, skip any files that contain "MVC"
+    # Get the list of EMG recording files
     files = [
         f
         for f in os.listdir(src_folder)
-        if os.path.isfile(os.path.join(src_folder, f))
-        and f.endswith(".otb+")
-        and "MVC" not in f
+        if os.path.isfile(os.path.join(src_folder, f)) and f.endswith(".otb+")
     ]
 
     print(f"files = {files}")
@@ -84,5 +82,5 @@ def rename_files():
         )
 
 
-# Use the function
-rename_files()
+if __name__ == "__main__":
+    rename_files()

@@ -4,17 +4,15 @@ import matplotlib.pyplot as plt
 from tkinter import filedialog
 from tkinter import Tk
 import os
-import re
 from collections import defaultdict
 from mvc_processing import calculate_mvc_for_each_channel
 from apply_processing_pipeline import apply_processing_pipeline
-from global_variables import sampling_frequency
+from amplifier_config import sampling_frequency, get_channel_names
 import matplotlib.patches as mpatches
+from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
-from global_variables import channel_names
 
-
-def plot_data(
+def plot_muscle_activation_comparison(
     activation_means,
     exercise_names,
     channel_name,
@@ -66,64 +64,68 @@ def plot_data(
     plt.show()
 
 
-# Hide the main tkinter window
-root = Tk()
-root.withdraw()
-
-# Open a directory dialog
-directory_path = filedialog.askdirectory(title="Select directory with exercise data")
-
-
-# Calculate the MVC value for each channel
-mvc_values = calculate_mvc_for_each_channel()
-
-
-# Initialize list to store filenames
-filenames = []
-
-# Iterate over files in the directory
-for filename in os.listdir(directory_path):
-    if filename.endswith(".mat"):
-        # Append filename to the list
-        filenames.append(os.path.join(directory_path, filename))
-
-# For each channel, compute the mean activation for each exercise and plot
-for channel_index, channel_name in enumerate(channel_names):
+def compute_channel_mean_activations(filenames, channel_index):
     # Initialize dictionary to store mean muscle activation values per exercise
     activation_means_dict = defaultdict(list)
-    participant_type = ""
 
     for filename in filenames:
         # Load the data from the .mat file
-        mat = loadmat(filename)
+        mat_file = loadmat(filename)
 
         # Extract the data
-        data = mat["data"]
+        data = mat_file["data"]
 
         # Process the EMG data
-        processed_data = apply_processing_pipeline(data, sampling_frequency, mvc_values)
-
+        processed_data = apply_processing_pipeline(
+            data[channel_index, :], sampling_frequency, mvc_values[channel_index]
+        )
+        # TODO: apply windowing method here
         # Compute the mean muscle activation for the selected channel
-        mean_activation = np.mean(processed_data[channel_index, :])
+        mean_activation = np.mean(processed_data)
 
-        # Extract the exercise name from the filename and store for labeling
+        # Extract the partecipant type and yoga position from the filename and store for labeling
         filename = os.path.basename(filename)
-        match = re.search(r"\d{2}_\d{2}_\d{4}", filename)
-        if match:
-            # Split the filename into parts before and after the date
-            parts = filename.split(match.group())
-            participant_type = parts[0].split("_")[0]
-            yoga_position = "_".join(parts[0].split("_")[1:]).rstrip("_")
+        exercise_name = get_exercise_name(filename)
 
-            # Skip this file if the yoga position is MVC
-            if "MVC" in yoga_position:
-                continue
+        activation_means_dict[exercise_name].append(mean_activation)
 
-            activation_means_dict[yoga_position].append(mean_activation)
+    return activation_means_dict
 
-    # Compute the mean of means for each exercise
-    exercise_names = list(activation_means_dict.keys())
-    activation_means = [np.mean(means) for means in activation_means_dict.values()]
 
-    # Plot the data for the current channel
-    plot_data(activation_means, exercise_names, channel_name, participant_type)
+if __name__ == "__main__":
+    # Hide the main tkinter window
+    root = Tk()
+    root.withdraw()
+
+    # Open a directory dialog
+    directory_path = filedialog.askdirectory(
+        title="Select directory with exercise data"
+    )
+
+    # Calculate the MVC value for each channel
+    mvc_values = calculate_mvc_for_each_channel(directory_path)
+
+    # Get channels configuration
+    channel_names = get_channel_names(directory_path)
+
+    # Extract .mat filenames
+    filenames = get_mat_filenames(directory_path)
+
+    # Extract partecipant type
+    participant_type = get_partecipant_type(filenames[0])
+
+    # For each channel, compute the mean activation for each exercise and plot
+    for channel_index, channel_name in enumerate(channel_names):
+        # Compute the mean activation of each exercise for a given channel
+        activation_means_dict = compute_channel_mean_activations(
+            filenames, channel_index
+        )
+
+        # Compute the mean of means for each exercise
+        exercise_names = list(activation_means_dict.keys())
+        activation_means = [np.mean(means) for means in activation_means_dict.values()]
+
+        # Plot the data for the current channel
+        plot_muscle_activation_comparison(
+            activation_means, exercise_names, channel_name, participant_type
+        )

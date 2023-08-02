@@ -2,12 +2,6 @@ from scipy.signal import butter, lfilter
 import matplotlib.pyplot as plt
 import numpy as np
 
-from global_variables import (
-    num_channels_to_plot,
-    channel_names,
-    sampling_frequency,
-)
-
 
 def rectify_signal(signal):
     """Rectify the given signal (take absolute value)."""
