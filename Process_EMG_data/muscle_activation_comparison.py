@@ -19,10 +19,19 @@ def plot_muscle_activation_comparison(
     participant_type,
     asymmetrical_exercises=["side_angle", "side_plank", "warrior2"],
 ):
+    # Filter out exercise names containing "MVC" and their corresponding activations
+    exercise_names_filtered, activation_means_filtered = zip(
+        *[
+            (name, activation)
+            for name, activation in zip(exercise_names, activation_means)
+            if "MVC" not in name
+        ]
+    )
+
     # Sort the data by exercise names
-    sort_indices = np.argsort(exercise_names)
-    sorted_exercise_names = np.array(exercise_names)[sort_indices]
-    sorted_activation_means = np.array(activation_means)[sort_indices]
+    sort_indices = np.argsort(exercise_names_filtered)
+    sorted_exercise_names = np.array(exercise_names_filtered)[sort_indices]
+    sorted_activation_means = np.array(activation_means_filtered)[sort_indices]
 
     # Create color list based on exercise name
     color_list = []
