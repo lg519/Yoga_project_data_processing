@@ -24,7 +24,7 @@ def plot_muscle_activation_comparison(
         *[
             (name, activation)
             for name, activation in zip(exercise_names, activation_means)
-            if "MVC" not in name
+            # if "MVC" not in name
         ]
     )
 
