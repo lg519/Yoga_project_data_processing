@@ -60,25 +60,37 @@ def get_mvc_files(directory_path):
     return mvc_files
 
 
-def calculate_mvc(filtered_mvc_data, sampling_frequency):
+import numpy as np
+
+
+def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
     """
-    Calculate the MVC value for a single channel using a 3-second window in the middle of the signal.
+    Calculate the MVC value for a single channel using a window and returns the value corresponding to the window with the maximum mean value.
 
     Args:
         filtered_mvc_data (np.array): The filtered MVC data for one channel.
         sampling_frequency (int): The sampling frequency of the signal.
+        window_duration (int, optional): The duration of the window in seconds. Defaults to 3 seconds.
 
     Returns:
         mvc_value (float): The MVC value for the channel.
     """
-    middle_index = len(filtered_mvc_data) // 2
-    window_size = 3 * sampling_frequency  # window size for 3 seconds
-    start_index = middle_index - window_size // 2
-    end_index = middle_index + window_size // 2
-    windowed_data = filtered_mvc_data[start_index:end_index]
+    window_size = int(window_duration * sampling_frequency)
+    max_mean_value = float("-inf")
+    mvc_value = 0
 
-    # Calculate the MVC value as the average value within the window
-    mvc_value = np.mean(windowed_data)
+    # Iterate through the entire signal with a sliding window of size window_size
+    for start_index in range(0, len(filtered_mvc_data) - window_size):
+        end_index = start_index + window_size
+        windowed_data = filtered_mvc_data[start_index:end_index]
+
+        # Calculate the mean value within the window
+        mean_value = np.mean(windowed_data)
+
+        # Update the mvc_value if the mean value is greater than the current max_mean_value
+        if mean_value > max_mean_value:
+            max_mean_value = mean_value
+            mvc_value = mean_value
 
     return mvc_value
 
