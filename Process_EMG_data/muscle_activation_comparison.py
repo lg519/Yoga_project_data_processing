@@ -17,6 +17,7 @@ def plot_muscle_activation_comparison(
     exercise_names,
     channel_name,
     participant_type,
+    max_mvc_filename,
     asymmetrical_exercises=["side_angle", "side_plank", "warrior2"],
 ):
     # Filter out exercise names containing "MVC" and their corresponding activations
@@ -63,10 +64,18 @@ def plot_muscle_activation_comparison(
     )
 
     # Set the y-axis label
-    plt.ylabel("Muscle activation (MVC fraction)")
+    plt.ylabel("Muscle average activation (MVC fraction)")
 
     # Set the title
     plt.title(f"Participant Type: {participant_type}, Channel: {channel_name}")
+
+    # Add the max MVC filename to the plot
+    plt.text(
+        0.05,
+        0.95,
+        f"MVC used for Normalization: {max_mvc_filename}",
+        transform=plt.gca().transAxes,
+    )
 
     # Show the plot
     plt.tight_layout()
@@ -111,8 +120,8 @@ if __name__ == "__main__":
         title="Select directory with exercise data"
     )
 
-    # Calculate the MVC value for each channel
-    mvc_values = calculate_mvc_for_each_channel(directory_path)
+    # Calculate the MVC value for each channel and get corresponding filenames
+    mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
 
     # Get channels configuration
     channel_names = get_channel_names(directory_path)
@@ -125,6 +134,7 @@ if __name__ == "__main__":
 
     # For each channel, compute the mean activation for each exercise and plot
     for channel_index, channel_name in enumerate(channel_names):
+        max_mvc_filename = max_mvc_filenames[channel_index]
         # Compute the mean activation of each exercise for a given channel
         activation_means_dict = compute_channel_mean_activations(
             filenames, channel_index
@@ -136,5 +146,9 @@ if __name__ == "__main__":
 
         # Plot the data for the current channel
         plot_muscle_activation_comparison(
-            activation_means, exercise_names, channel_name, participant_type
+            activation_means,
+            exercise_names,
+            channel_name,
+            participant_type,
+            max_mvc_filename,
         )
