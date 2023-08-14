@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import fnmatch
 import os
 import numpy as np
+from utilis import get_exercise_name
+from amplifier_config import get_channel_names
 
 
 def choose_mvc_files():
@@ -74,7 +76,7 @@ def calculate_mvc_for_each_channel(directory_path):
     num_channels = len(channel_names)
 
     max_mvc_values = []
-    mvc_filenames_for_channels = []
+    mvc_exercise_names_for_channels = []
 
     for i in range(num_channels):
         mvc_values = []
@@ -95,32 +97,37 @@ def calculate_mvc_for_each_channel(directory_path):
                 max_mvc_value_index = j
 
         max_mvc_values.append(max(mvc_values))
-        mvc_filenames_for_channels.append(mvc_filenames[max_mvc_value_index])
+        mvc_exercise_names_for_channels.append(
+            get_exercise_name(mvc_filenames[max_mvc_value_index])
+        )
 
-    return np.array(max_mvc_values), mvc_filenames_for_channels
+    return np.array(max_mvc_values), mvc_exercise_names_for_channels
 
 
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()  # Hide the main window
     directory_path = filedialog.askdirectory(title="Select MVC Files directory")
-    max_mvc_values, mvc_filenames_for_channels = calculate_mvc_for_each_channel(
+    max_mvc_values, mvc_exercise_names_for_channels = calculate_mvc_for_each_channel(
         directory_path
     )
 
-    print("Max MVC Values for Each Channel:")
-    for i, value in enumerate(max_mvc_values):
-        print(f"Channel {i+1}: {value}")
+    max_mvc_values, mvc_exercise_names_for_channels = calculate_mvc_for_each_channel(
+        directory_path
+    )
 
-    print("\nFilenames Corresponding to Max MVC Values:")
-    for i, filename in enumerate(mvc_filenames_for_channels):
-        print(f"Channel {i+1}: {filename}")
+    channel_names = get_channel_names(directory_path)
+    print("Max MVC Values and Filenames for Each Channel:")
+    for i, (value, filename) in enumerate(
+        zip(max_mvc_values, mvc_exercise_names_for_channels)
+    ):
+        channel_name = channel_names[i]
+        print(f"{channel_name}: Max Value = {value}, Filename = {filename}")
 
     print("\nAll MVC Values Calculated:")
-    mvc_datas, _ = get_mvc_files(directory_path)
-    channel_names = get_channel_names(directory_path)
-    for i in range(len(channel_names)):
-        print(f"Channel {i+1}:")
+    mvc_datas, mvc_filenames = get_mvc_files(directory_path)
+    for i, channel_name in enumerate(channel_names):
+        print(f"{channel_name}:")
         for j, mvc_data in enumerate(mvc_datas):
             filtered_mvc_data = butter_bandpass_filter(
                 mvc_data[i, :], lowcut, highcut, sampling_frequency
@@ -130,4 +137,4 @@ if __name__ == "__main__":
                 rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
             )
             mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
-            print(f"  File {j+1}: {mvc_value}")
+            print(f"  File {j+1} ({mvc_filenames[j]}): {mvc_value}")
