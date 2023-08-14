@@ -8,6 +8,7 @@ from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_na
 import matplotlib.pyplot as plt
 import fnmatch
 import os
+import numpy as np
 
 
 def choose_mvc_files():
@@ -58,9 +59,6 @@ def get_mvc_files(directory_path):
             mvc_files.append(data)
 
     return mvc_files
-
-
-import numpy as np
 
 
 def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
