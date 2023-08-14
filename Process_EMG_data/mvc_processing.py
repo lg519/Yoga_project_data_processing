@@ -37,55 +37,30 @@ def choose_mvc_files():
 
 
 def get_mvc_files(directory_path):
-    """
-    Find all files in a directory with 'MVC' in their name, load these files, and return the loaded data.
-
-    Args:
-        directory (str): The directory to search for MVC files.
-
-    Returns:
-        mvc_files (list of np.array): The loaded MVC data for each file.
-    """
     mvc_files = []
+    mvc_filenames = []
     for filename in os.listdir(directory_path):
         if fnmatch.fnmatch(filename, "*MVC*.mat"):
             filepath = os.path.join(directory_path, filename)
-            # Load the data from the .mat file
             mat = loadmat(filepath)
-
-            # Assuming 'data' is the key for the data you want
             data = mat["data"]
 
             mvc_files.append(data)
+            mvc_filenames.append(filename)
 
-    return mvc_files
+    return mvc_files, mvc_filenames
 
 
 def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
-    """
-    Calculate the MVC value for a single channel using a window and returns the value corresponding to the window with the maximum mean value.
-
-    Args:
-        filtered_mvc_data (np.array): The filtered MVC data for one channel.
-        sampling_frequency (int): The sampling frequency of the signal.
-        window_duration (int, optional): The duration of the window in seconds. Defaults to 3 seconds.
-
-    Returns:
-        mvc_value (float): The MVC value for the channel.
-    """
     window_size = int(window_duration * sampling_frequency)
     max_mean_value = float("-inf")
     mvc_value = 0
 
-    # Iterate through the entire signal with a sliding window of size window_size
     for start_index in range(0, len(filtered_mvc_data) - window_size):
         end_index = start_index + window_size
         windowed_data = filtered_mvc_data[start_index:end_index]
-
-        # Calculate the mean value within the window
         mean_value = np.mean(windowed_data)
 
-        # Update the mvc_value if the mean value is greater than the current max_mean_value
         if mean_value > max_mean_value:
             max_mean_value = mean_value
             mvc_value = mean_value
@@ -94,39 +69,65 @@ def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
 
 
 def calculate_mvc_for_each_channel(directory_path):
-    """
-    Returns:
-        max_mvc_values (array): The maximum MVC values for each channel across files.
-    """
-    mvc_datas = get_mvc_files(directory_path)
+    mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)
     num_channels = len(channel_names)
 
     max_mvc_values = []
-    for i in range(num_channels):  # Iterating over channels
+    mvc_filenames_for_channels = []
+
+    for i in range(num_channels):
         mvc_values = []
-        # fig, axs = plt.subplots(len(mvc_datas), 1, figsize=(10, 2 * len(mvc_datas)))
-        # fig.suptitle(f"Channel {i+1} MVC Envelopes", fontsize=14, weight="bold")
+        max_mvc_value = float("-inf")
+        max_mvc_value_index = 0
         for j, mvc_data in enumerate(mvc_datas):
-            # apply bandpass filter
             filtered_mvc_data = butter_bandpass_filter(
                 mvc_data[i, :], lowcut, highcut, sampling_frequency
             )
-            # rectify the signal
             rectified_mvc_data = rectify_signal(filtered_mvc_data)
-            # extract envelpoe
             mvc_envelope = butter_lowpass_filter(
                 rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
             )
             mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
             mvc_values.append(mvc_value)
-            # # Plot MVC envelope for each channel
-            # axs[j].plot(mvc_envelope)
-            # axs[j].set_title(f"File {j+1}")
+            if mvc_value > max_mvc_value:
+                max_mvc_value = mvc_value
+                max_mvc_value_index = j
 
         max_mvc_values.append(max(mvc_values))
+        mvc_filenames_for_channels.append(mvc_filenames[max_mvc_value_index])
 
-        # plt.tight_layout()
-        # plt.show()
+    return np.array(max_mvc_values), mvc_filenames_for_channels
 
-    return np.array(max_mvc_values)
+
+if __name__ == "__main__":
+    root = Tk()
+    root.withdraw()  # Hide the main window
+    directory_path = filedialog.askdirectory(title="Select MVC Files directory")
+    max_mvc_values, mvc_filenames_for_channels = calculate_mvc_for_each_channel(
+        directory_path
+    )
+
+    print("Max MVC Values for Each Channel:")
+    for i, value in enumerate(max_mvc_values):
+        print(f"Channel {i+1}: {value}")
+
+    print("\nFilenames Corresponding to Max MVC Values:")
+    for i, filename in enumerate(mvc_filenames_for_channels):
+        print(f"Channel {i+1}: {filename}")
+
+    print("\nAll MVC Values Calculated:")
+    mvc_datas, _ = get_mvc_files(directory_path)
+    channel_names = get_channel_names(directory_path)
+    for i in range(len(channel_names)):
+        print(f"Channel {i+1}:")
+        for j, mvc_data in enumerate(mvc_datas):
+            filtered_mvc_data = butter_bandpass_filter(
+                mvc_data[i, :], lowcut, highcut, sampling_frequency
+            )
+            rectified_mvc_data = rectify_signal(filtered_mvc_data)
+            mvc_envelope = butter_lowpass_filter(
+                rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
+            )
+            mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
+            print(f"  File {j+1}: {mvc_value}")
