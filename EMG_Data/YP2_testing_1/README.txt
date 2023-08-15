@@ -1,1 +1,0 @@
-serratus electrodes detached towards the end
