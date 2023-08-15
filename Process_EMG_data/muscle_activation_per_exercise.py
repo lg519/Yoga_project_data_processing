@@ -20,10 +20,29 @@ def plot_muscle_activation_per_exercise(
 ):
     # Create a bar graph of the average muscle activation for each channel
     plt.figure(figsize=(10, 6))
-    plt.bar(range(len(channel_names)), activation_means)
-    plt.xticks(range(len(channel_names)), channel_names, rotation="vertical")
-    plt.ylabel("Muscle average activation (MVC fraction)")
-    plt.title(f"{participant_type} - {exercise_name}")
+    bars = plt.bar(range(len(channel_names)), activation_means)
+
+    # Set font properties
+    font_properties = {"fontsize": 12, "fontweight": "bold"}
+
+    plt.xticks(
+        range(len(channel_names)), channel_names, rotation="vertical", **font_properties
+    )
+    plt.ylabel("Muscle average activation (MVC fraction)", **font_properties)
+    plt.title(f"{participant_type} - {exercise_name}", **font_properties)
+
+    # # Applying bold font to the bar values
+    # for bar in bars:
+    #     height = bar.get_height()
+    #     plt.text(
+    #         bar.get_x() + bar.get_width() / 2.0,
+    #         height,
+    #         f"{height:.2f}",
+    #         ha="center",
+    #         va="bottom",
+    #         **font_properties,
+    #     )
+
     plt.tight_layout()
     plt.show()
 
@@ -38,7 +57,9 @@ def plot_muscle_activation_per_exercise(
     ax.axis("off")  # This hides the axis
     ax.table(cellText=table_data, cellLoc="center", loc="center", colWidths=[0.4, 0.6])
 
-    plt.title(f"{participant_type} - MVC File Mapping for {exercise_name}")
+    plt.title(
+        f"{participant_type} - MVC File Mapping for {exercise_name}", **font_properties
+    )
     plt.show()
 
 

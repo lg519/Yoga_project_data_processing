@@ -71,7 +71,7 @@ def plot_muscle_activation_per_channel(
     )  # Increase the font size for y-axis label
     plt.title(
         f"{participant_type} - {channel_name}",
-        fontsize=14,
+        fontsize=12,
         fontweight="bold",
     )  # Increase the font size for title
 
