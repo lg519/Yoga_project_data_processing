@@ -12,7 +12,7 @@ import matplotlib.patches as mpatches
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
 
-def plot_muscle_activation_per_channel(
+def plot_mean_muscle_activation_per_channel(
     activation_means,
     exercise_names,
     channel_name,
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         activation_means = [np.mean(means) for means in activation_means_dict.values()]
 
         # Plot the data for the current channel
-        plot_muscle_activation_per_channel(
+        plot_mean_muscle_activation_per_channel(
             activation_means,
             exercise_names,
             channel_name,

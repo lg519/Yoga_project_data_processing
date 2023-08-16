@@ -11,7 +11,7 @@ from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
 
-def plot_muscle_activation_per_exercise(
+def plot_mean_muscle_activation_per_exercise(
     activation_means,
     channel_names,
     exercise_name,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     )
 
     for exercise_name, activation_means in activation_means_per_exercise.items():
-        plot_muscle_activation_per_exercise(
+        plot_mean_muscle_activation_per_exercise(
             activation_means,
             channel_names,
             exercise_name,
