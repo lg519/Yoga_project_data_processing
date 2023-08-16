@@ -69,11 +69,14 @@ def compute_exercise_mean_activations(filenames, channel_indices, mvc_values):
     for filename in filenames:
         mat_file = loadmat(filename)
         data = mat_file["data"]
+
         exercise_name = get_exercise_name(os.path.basename(filename))
 
         for channel_index in channel_indices:
             processed_data = apply_processing_pipeline(
-                data[channel_index, :], sampling_frequency, mvc_values[channel_index]
+                data[channel_index, :],
+                sampling_frequency,
+                mvc_values[channel_index],
             )
             mean_activation = np.mean(processed_data)
             activation_means_per_exercise[exercise_name][

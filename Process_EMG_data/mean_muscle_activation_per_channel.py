@@ -104,9 +104,10 @@ def compute_channel_mean_activations(filenames, channel_index, mvc_values):
 
         # Process the EMG data
         processed_data = apply_processing_pipeline(
-            data[channel_index, :], sampling_frequency, mvc_values[channel_index]
+            data[channel_index, :],
+            sampling_frequency,
+            mvc_values[channel_index],
         )
-        # TODO: apply windowing method here
         # Compute the mean muscle activation for the selected channel
         mean_activation = np.mean(processed_data)
 

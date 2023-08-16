@@ -5,6 +5,23 @@ import numpy as np
 from amplifier_config import highcut, lowcut
 
 
+def trim_data(data, sampling_frequency):
+    """
+    Trim one second of data from both ends of the signal for multi-channel data.
+
+    Args:
+        data (np.array): The raw multi-channel data.
+        sampling_frequency (int): The sampling frequency of the signal.
+
+    Returns:
+        np.array: Trimmed data for all channels.
+    """
+    # Calculate the number of samples corresponding to one second
+    samples_to_remove = int(sampling_frequency)
+
+    return data[samples_to_remove:-samples_to_remove]
+
+
 def apply_processing_pipeline(data, sampling_frequency, mvc):
     """
     Process the raw EMG data and return the normalized signal.
@@ -15,9 +32,11 @@ def apply_processing_pipeline(data, sampling_frequency, mvc):
         mvc (array): The MVC value for the channel considered.
 
     Returns:
-        normalized_signal (np.array): The normalized signal .
+        normalized_signal (np.array): The normalized signal.
     """
 
+    # Trim the data
+    data = trim_data(data, sampling_frequency)
     # Apply the bandpass filter
     filtered_data = np.zeros_like(data, dtype=float)
     filtered_data = butter_bandpass_filter(data, lowcut, highcut, sampling_frequency)

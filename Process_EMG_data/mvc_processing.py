@@ -53,7 +53,7 @@ def get_mvc_files(directory_path):
     return mvc_files, mvc_filenames
 
 
-def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
+def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=1):
     window_size = int(window_duration * sampling_frequency)
     max_mean_value = float("-inf")
     mvc_value = 0
@@ -70,6 +70,14 @@ def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=0.5):
     return mvc_value
 
 
+# TODO: remove this function to refactor the code
+def trim_data_for_mvc(data, sampling_frequency):
+    # Calculate the number of samples corresponding to one second
+    samples_to_remove = int(sampling_frequency)
+
+    return data[:, samples_to_remove:-samples_to_remove]
+
+
 def calculate_mvc_for_each_channel(directory_path):
     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)
@@ -83,8 +91,10 @@ def calculate_mvc_for_each_channel(directory_path):
         max_mvc_value = float("-inf")
         max_mvc_value_index = 0
         for j, mvc_data in enumerate(mvc_datas):
+            # TODO: Refactor this code to make it only one function call
+            trimmed_mvc_data = trim_data_for_mvc(mvc_data, sampling_frequency)
             filtered_mvc_data = butter_bandpass_filter(
-                mvc_data[i, :], lowcut, highcut, sampling_frequency
+                trimmed_mvc_data[i, :], lowcut, highcut, sampling_frequency
             )
             rectified_mvc_data = rectify_signal(filtered_mvc_data)
             mvc_envelope = butter_lowpass_filter(
@@ -108,9 +118,6 @@ if __name__ == "__main__":
     root = Tk()
     root.withdraw()  # Hide the main window
     directory_path = filedialog.askdirectory(title="Select MVC Files directory")
-    max_mvc_values, mvc_exercise_names_for_channels = calculate_mvc_for_each_channel(
-        directory_path
-    )
 
     max_mvc_values, mvc_exercise_names_for_channels = calculate_mvc_for_each_channel(
         directory_path

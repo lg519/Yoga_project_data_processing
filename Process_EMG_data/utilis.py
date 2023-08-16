@@ -37,9 +37,6 @@ def get_partecipant_type(filename):
     ValueError: If the date pattern is not found in the filename.
     """
 
-    # TODO: add sanity check going through all the filenames  and making sure the partecipant type is the same.
-    # If not raise an error
-
     filename = os.path.basename(filename)
     match = re.search(r"\d{2}_\d{2}_\d{4}", filename)
     if match:
