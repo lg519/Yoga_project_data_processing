@@ -22,12 +22,26 @@ def plot_muscle_activation_per_exercise(
 
     # Get the number of reps for the first channel (assuming consistent repetitions across channels)
     num_reps = len(activations[0])
-    colors = plt.cm.viridis(np.linspace(0, 1, num_reps))
+    colors = plt.cm.tab10(np.linspace(0, 1, num_reps))
+
+    # Calculate mean activations for the entire exercise
+    mean_activations = [np.mean([np.mean(rep) for rep in reps]) for reps in activations]
 
     # Getting bar positions
     positions = np.arange(len(channel_names))
     width = 0.2  # Adjust as necessary if you have more repetitions
 
+    # Plot mean activation bars
+    bars = plt.bar(
+        positions,
+        mean_activations,
+        width=width,
+        color="lightgray",  # Lighter color for better contrast
+        label="Mean Activation",
+        alpha=0.7,
+    )
+
+    # Overlay horizontal lines for each repetition's mean activation on the mean bars
     for rep_index in range(num_reps):
         activations_for_rep = [
             np.mean(activations[channel][rep_index])
@@ -35,17 +49,20 @@ def plot_muscle_activation_per_exercise(
             else 0
             for channel in range(len(channel_names))
         ]
-        plt.bar(
-            positions + rep_index * width,
-            activations_for_rep,
-            color=colors[rep_index],
-            alpha=0.7,
-            width=width,
-            label=f"Rep {rep_index + 1}",
-        )
+        for pos, (bar, activation) in enumerate(zip(bars, activations_for_rep)):
+            plt.hlines(
+                activation,
+                bar.get_x(),
+                bar.get_x() + bar.get_width(),
+                colors=colors[rep_index],
+                label=f"Rep {rep_index + 1}"
+                if pos == 0
+                else "",  # Avoid duplicate labels in legend
+                linewidth=2,  # Increase line width for better visibility
+            )
 
     font_properties = {"fontsize": 12, "fontweight": "bold"}
-    plt.xticks(positions + width, channel_names, rotation="vertical", **font_properties)
+    plt.xticks(positions, channel_names, rotation="vertical", **font_properties)
     plt.ylabel("Muscle average activation (MVC fraction)", **font_properties)
     plt.title(f"{participant_type} - {exercise_name}", **font_properties)
     plt.legend()
