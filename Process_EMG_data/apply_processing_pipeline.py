@@ -53,5 +53,7 @@ def apply_processing_pipeline(data, sampling_frequency, mvc):
     if mvc != 0:
         normalized_signal = envelope / mvc
     else:
-        raise ValueError(f"Error: Division by zero")
+        normalized_signal = envelope / 1
+        print("Error: MVC is 0")
+        # raise ValueError(f"Error: Division by zero")
     return normalized_signal
