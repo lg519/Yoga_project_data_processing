@@ -1,25 +1,8 @@
 from filtering import butter_bandpass_filter, butter_lowpass_filter
 from rectify_signal import rectify_signal
 import numpy as np
-
 from amplifier_config import highcut, lowcut
-
-
-def trim_data(data, sampling_frequency):
-    """
-    Trim one second of data from both ends of the signal for multi-channel data.
-
-    Args:
-        data (np.array): The raw multi-channel data.
-        sampling_frequency (int): The sampling frequency of the signal.
-
-    Returns:
-        np.array: Trimmed data for all channels.
-    """
-    # Calculate the number of samples corresponding to one second
-    samples_to_remove = int(sampling_frequency)
-
-    return data[samples_to_remove:-samples_to_remove]
+from utilis import trim_data
 
 
 def apply_processing_pipeline(data, sampling_frequency, mvc):

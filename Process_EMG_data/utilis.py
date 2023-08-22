@@ -77,3 +77,20 @@ def get_exercise_name(filename):
     raise ValueError(
         f"Could not find the expected date pattern in the filename. Filename is {filename}"
     )
+
+
+def trim_data(data, sampling_frequency):
+    """
+    Trim the data by removing the first and last second of the signal.
+
+    Args:
+        data (np.array): The raw EMG data.
+        sampling_frequency (int): The sampling frequency of the signal.
+
+    Returns:
+        data (np.array): The trimmed EMG data.
+    """
+    # Calculate the number of samples corresponding to one second
+    samples_to_remove = int(sampling_frequency)
+
+    return data[samples_to_remove:-samples_to_remove]

@@ -8,34 +8,29 @@ from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_na
 import matplotlib.pyplot as plt
 import fnmatch
 import os
-import numpy as np
-from utilis import get_exercise_name
-from amplifier_config import get_channel_names
+from utilis import get_exercise_name, trim_data
 
 
-def choose_mvc_files():
-    """
-    Open a file dialog to choose the MVC files, load the selected files, and return the loaded data.
+def process_mvc_data_for_channel(channel_data):
+    """Process raw MVC data for a specific channel and return the computed MVC value."""
+    # Trim operation
+    trimmed_data = trim_data(channel_data, sampling_frequency)
 
-    Returns:
-        datas (list of np.array): The loaded MVC data for each file.
-    """
-    root = Tk()
-    root.withdraw()  # Hide the main window
-    filenames = filedialog.askopenfilenames(title="Select MVC Files")
-    root.destroy()  # Destroy the main window
+    # Filter the data with a bandpass filter
+    filtered_data = butter_bandpass_filter(
+        trimmed_data, lowcut, highcut, sampling_frequency
+    )
 
-    datas = []
-    for filename in filenames:
-        # Load the data from the .mat file
-        mat = loadmat(filename)
+    # Rectify the signal
+    rectified_data = rectify_signal(filtered_data)
 
-        # Assuming 'data' is the key for the data you want
-        data = mat["data"]
+    # Get the envelope of the rectified signal using a lowpass filter
+    mvc_envelope = butter_lowpass_filter(
+        rectified_data, cutoff=5, sampling_frequency=sampling_frequency
+    )
 
-        datas.append(data)
-
-    return datas
+    # Calculate the MVC value for the channel
+    return calculate_mvc_for_channel(mvc_envelope, sampling_frequency)
 
 
 def get_mvc_files(directory_path):
@@ -46,67 +41,44 @@ def get_mvc_files(directory_path):
             filepath = os.path.join(directory_path, filename)
             mat = loadmat(filepath)
             data = mat["data"]
-
             mvc_files.append(data)
             mvc_filenames.append(filename)
-
     return mvc_files, mvc_filenames
 
 
-def calculate_mvc(filtered_mvc_data, sampling_frequency, window_duration=1):
+def calculate_mvc_for_channel(data, sampling_frequency, window_duration=1):
     window_size = int(window_duration * sampling_frequency)
     max_mean_value = float("-inf")
-    mvc_value = 0
 
-    for start_index in range(0, len(filtered_mvc_data) - window_size):
+    for start_index in range(0, len(data) - window_size):
         end_index = start_index + window_size
-        windowed_data = filtered_mvc_data[start_index:end_index]
+        windowed_data = data[start_index:end_index]
         mean_value = np.mean(windowed_data)
-
         if mean_value > max_mean_value:
             max_mean_value = mean_value
-            mvc_value = mean_value
-
-    return mvc_value
-
-
-# TODO: remove this function to refactor the code
-def trim_data_for_mvc(data, sampling_frequency):
-    # Calculate the number of samples corresponding to one second
-    samples_to_remove = int(sampling_frequency)
-
-    return data[:, samples_to_remove:-samples_to_remove]
+    return max_mean_value
 
 
 def calculate_mvc_for_each_channel(directory_path):
     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)
-    num_channels = len(channel_names)
 
     max_mvc_values = []
     mvc_exercise_names_for_channels = []
 
-    for i in range(num_channels):
-        mvc_values = []
+    for i, channel_name in enumerate(channel_names):
         max_mvc_value = float("-inf")
         max_mvc_value_index = 0
+
         for j, mvc_data in enumerate(mvc_datas):
-            # TODO: Refactor this code to make it only one function call
-            trimmed_mvc_data = trim_data_for_mvc(mvc_data, sampling_frequency)
-            filtered_mvc_data = butter_bandpass_filter(
-                trimmed_mvc_data[i, :], lowcut, highcut, sampling_frequency
-            )
-            rectified_mvc_data = rectify_signal(filtered_mvc_data)
-            mvc_envelope = butter_lowpass_filter(
-                rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
-            )
-            mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
-            mvc_values.append(mvc_value)
+            channel_data = mvc_data[i, :]
+            mvc_value = process_mvc_data_for_channel(channel_data)
+
             if mvc_value > max_mvc_value:
                 max_mvc_value = mvc_value
                 max_mvc_value_index = j
 
-        max_mvc_values.append(max(mvc_values))
+        max_mvc_values.append(max_mvc_value)
         mvc_exercise_names_for_channels.append(
             get_exercise_name(mvc_filenames[max_mvc_value_index])
         )
@@ -118,6 +90,7 @@ if __name__ == "__main__":
     root = Tk()
     root.withdraw()  # Hide the main window
     directory_path = filedialog.askdirectory(title="Select MVC Files directory")
+    root.destroy()
 
     max_mvc_values, mvc_exercise_names_for_channels = calculate_mvc_for_each_channel(
         directory_path
@@ -136,12 +109,6 @@ if __name__ == "__main__":
     for i, channel_name in enumerate(channel_names):
         print(f"{channel_name}:")
         for j, mvc_data in enumerate(mvc_datas):
-            filtered_mvc_data = butter_bandpass_filter(
-                mvc_data[i, :], lowcut, highcut, sampling_frequency
-            )
-            rectified_mvc_data = rectify_signal(filtered_mvc_data)
-            mvc_envelope = butter_lowpass_filter(
-                rectified_mvc_data, cutoff=5, sampling_frequency=sampling_frequency
-            )
-            mvc_value = calculate_mvc(mvc_envelope, sampling_frequency)
+            channel_data = mvc_data[i, :]
+            mvc_value = process_mvc_data_for_channel(channel_data)
             print(f"  File {j+1} ({mvc_filenames[j]}): {mvc_value}")
