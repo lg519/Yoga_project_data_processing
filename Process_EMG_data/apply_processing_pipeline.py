@@ -5,6 +5,22 @@ from amplifier_config import highcut, lowcut
 from utilis import trim_data
 
 
+def extract_envelope(data, sampling_frequency):
+    # Trim the data
+    data = trim_data(data, sampling_frequency)
+    # Apply the bandpass filter
+    filtered_data = np.zeros_like(data, dtype=float)
+    filtered_data = butter_bandpass_filter(data, lowcut, highcut, sampling_frequency)
+
+    # Rectify the filtered signal and extract the envelope
+    envelope = np.zeros_like(filtered_data, dtype=float)
+    rectified_data = rectify_signal(filtered_data)
+    envelope = butter_lowpass_filter(
+        rectified_data, cutoff=5, sampling_frequency=sampling_frequency
+    )
+    return envelope
+
+
 def apply_processing_pipeline(data, sampling_frequency, mvc):
     """
     Process the raw EMG data and return the normalized signal.
@@ -18,18 +34,7 @@ def apply_processing_pipeline(data, sampling_frequency, mvc):
         normalized_signal (np.array): The normalized signal.
     """
 
-    # Trim the data
-    data = trim_data(data, sampling_frequency)
-    # Apply the bandpass filter
-    filtered_data = np.zeros_like(data, dtype=float)
-    filtered_data = butter_bandpass_filter(data, lowcut, highcut, sampling_frequency)
-
-    # Rectify the filtered signal and extract the envelope
-    envelope = np.zeros_like(filtered_data, dtype=float)
-    rectified_data = rectify_signal(filtered_data)
-    envelope = butter_lowpass_filter(
-        rectified_data, cutoff=5, sampling_frequency=sampling_frequency
-    )
+    envelope = extract_envelope(data, sampling_frequency)
 
     # Normalize the signal using MVC
     normalized_signal = np.zeros_like(envelope, dtype=float)
