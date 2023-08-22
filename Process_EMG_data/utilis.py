@@ -17,7 +17,7 @@ def get_mat_filenames(directory_path):
     for filename in os.listdir(directory_path):
         if filename.endswith(".mat"):
             filenames.append(os.path.join(directory_path, filename))
-    return filenames
+    return sorted(filenames)
 
 
 def get_partecipant_type(filename):
