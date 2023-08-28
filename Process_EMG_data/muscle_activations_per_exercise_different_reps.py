@@ -112,11 +112,13 @@ def plot_muscle_activation_per_exercise(
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
+    # print(f"file names: {filenames}")
 
     for filename in filenames:
         mat_file = loadmat(filename)
         data = mat_file["data"]
         exercise_name = get_exercise_name(os.path.basename(filename))
+        # print(f"exercise name: {exercise_name}")
 
         for channel_index in channel_indices:
             processed_data = apply_processing_pipeline(
@@ -163,7 +165,7 @@ if __name__ == "__main__":
 
     # After selecting the directory_path and before plotting:
     save_directory = os.path.join(
-        directory_path, "figures_muscle_activation_per_exercise_2"
+        directory_path, "figures_muscle_activation_per_exercise"
     )
     os.makedirs(save_directory, exist_ok=True)
 
