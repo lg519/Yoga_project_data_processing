@@ -8,26 +8,14 @@ from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_na
 import matplotlib.pyplot as plt
 import fnmatch
 import os
-from utilis import get_exercise_name, trim_data
+from utilis import get_exercise_name
+from apply_processing_pipeline import extract_envelope
 
 
 def process_mvc_data_for_channel(channel_data):
     """Process raw MVC data for a specific channel and return the computed MVC value."""
-    # Trim operation
-    trimmed_data = trim_data(channel_data, sampling_frequency)
 
-    # Filter the data with a bandpass filter
-    filtered_data = butter_bandpass_filter(
-        trimmed_data, lowcut, highcut, sampling_frequency
-    )
-
-    # Rectify the signal
-    rectified_data = rectify_signal(filtered_data)
-
-    # Get the envelope of the rectified signal using a lowpass filter
-    mvc_envelope = butter_lowpass_filter(
-        rectified_data, cutoff=5, sampling_frequency=sampling_frequency
-    )
+    mvc_envelope = extract_envelope(channel_data, sampling_frequency)
 
     # Calculate the MVC value for the channel
     return calculate_mvc_for_channel(mvc_envelope, sampling_frequency)
@@ -43,10 +31,11 @@ def get_mvc_files(directory_path):
             data = mat["data"]
             mvc_files.append(data)
             mvc_filenames.append(filename)
+    print(f"MVC filenames:{mvc_filenames}")
     return mvc_files, mvc_filenames
 
 
-def calculate_mvc_for_channel(data, sampling_frequency, window_duration=1):
+def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
     window_size = int(window_duration * sampling_frequency)
     max_mean_value = float("-inf")
 
@@ -57,6 +46,12 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=1):
         if mean_value > max_mean_value:
             max_mean_value = mean_value
     return max_mean_value
+
+
+def calculate_mvc_for_channel_using_absolute_max_value(
+    data, sampling_frequency, window_duration=0.5
+):
+    return np.max(data)
 
 
 def calculate_mvc_for_each_channel(directory_path):
