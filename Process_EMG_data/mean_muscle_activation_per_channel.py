@@ -6,7 +6,7 @@ from tkinter import Tk
 import os
 from collections import defaultdict
 from mvc_processing import calculate_mvc_for_each_channel
-from apply_processing_pipeline import apply_processing_pipeline
+from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 import matplotlib.patches as mpatches
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
@@ -103,7 +103,7 @@ def compute_channel_mean_activations(filenames, channel_index, mvc_values):
         data = mat_file["data"]
 
         # Process the EMG data
-        processed_data = apply_processing_pipeline(
+        processed_data = normalize_signal(
             data[channel_index, :],
             sampling_frequency,
             mvc_values[channel_index],

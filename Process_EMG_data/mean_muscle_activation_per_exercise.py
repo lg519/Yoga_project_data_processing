@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from mvc_processing import calculate_mvc_for_each_channel
-from apply_processing_pipeline import apply_processing_pipeline
+from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
@@ -73,7 +73,7 @@ def compute_exercise_mean_activations(filenames, channel_indices, mvc_values):
         exercise_name = get_exercise_name(os.path.basename(filename))
 
         for channel_index in channel_indices:
-            processed_data = apply_processing_pipeline(
+            processed_data = normalize_signal(
                 data[channel_index, :],
                 sampling_frequency,
                 mvc_values[channel_index],

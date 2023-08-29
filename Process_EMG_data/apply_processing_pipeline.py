@@ -21,7 +21,7 @@ def extract_envelope(data, sampling_frequency):
     return envelope
 
 
-def apply_processing_pipeline(data, sampling_frequency, mvc):
+def normalize_signal(data, sampling_frequency, mvc):
     """
     Process the raw EMG data and return the normalized signal.
 
@@ -41,7 +41,7 @@ def apply_processing_pipeline(data, sampling_frequency, mvc):
     if mvc != 0:
         normalized_signal = envelope / mvc
     else:
-        normalized_signal = envelope / 1
-        print("Error: MVC is 0")
-        # raise ValueError(f"Error: Division by zero")
+        # normalized_signal = envelope / 1
+        # print("Error: MVC is 0")
+        raise ValueError(f"Error: Division by zero")
     return normalized_signal

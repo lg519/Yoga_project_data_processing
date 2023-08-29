@@ -31,7 +31,7 @@ def get_mvc_files(directory_path):
             data = mat["data"]
             mvc_files.append(data)
             mvc_filenames.append(filename)
-    print(f"MVC filenames:{mvc_filenames}")
+    # print(f"MVC filenames:{mvc_filenames}")
     return mvc_files, mvc_filenames
 
 

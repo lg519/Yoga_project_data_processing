@@ -6,7 +6,7 @@ from tkinter import Tk
 import os
 from collections import defaultdict
 from mvc_processing import calculate_mvc_for_each_channel
-from apply_processing_pipeline import apply_processing_pipeline
+from apply_processing_pipeline import normalize_signal, extract_envelope
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
@@ -80,7 +80,7 @@ def plot_all_reps_muscle_activation_per_channel(
     plt.yticks(fontsize=10)
     plt.legend()
 
-    plt.ylabel("Muscle activation (MVC fraction)", fontsize=12, fontweight="bold")
+    plt.ylabel("Muscle activation mV", fontsize=12, fontweight="bold")
     plt.title(
         f"{participant_type} - {channel_name}",
         fontsize=12,
@@ -108,10 +108,10 @@ def compute_channel_mean_activations(filenames, channel_index, mvc_values):
         mat_file = loadmat(filename)
         data = mat_file["data"]
 
-        processed_data = apply_processing_pipeline(
+        processed_data = extract_envelope(
             data[channel_index, :],
             sampling_frequency,
-            mvc_values[channel_index],
+            # mvc_values[channel_index],
         )
 
         mean_activation = np.mean(processed_data)
