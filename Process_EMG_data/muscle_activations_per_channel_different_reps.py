@@ -27,8 +27,11 @@ def plot_all_reps_muscle_activation_per_channel(
         ]
     )
 
-    # Sort the data by exercise names
-    sort_indices = np.argsort(exercise_names_filtered)
+    # Calculate mean activations for sorting
+    mean_activations = [np.mean(reps) for reps in activation_reps_filtered]
+
+    # Sort the data by mean activations
+    sort_indices = np.argsort(mean_activations)[::-1]
     sorted_exercise_names = np.array(exercise_names_filtered)[sort_indices]
     sorted_activation_reps = np.array(activation_reps_filtered)[sort_indices]
 
@@ -36,10 +39,10 @@ def plot_all_reps_muscle_activation_per_channel(
 
     # Plot mean activations as bars with a hatch pattern
     bar_width = 0.6
-    mean_activations = [np.mean(reps) for reps in sorted_activation_reps]
+    sorted_mean_activations = [mean_activations[index] for index in sort_indices]
     bars = plt.bar(
         range(len(sorted_exercise_names)),
-        mean_activations,
+        sorted_mean_activations,
         width=bar_width,
         color="gray",
         alpha=0.6,
@@ -48,13 +51,12 @@ def plot_all_reps_muscle_activation_per_channel(
     )
 
     # Overlay the mean activation value using a dot and a horizontal line
-    for index, (bar, mean_activation) in enumerate(zip(bars, mean_activations)):
+    for index, (bar, mean_activation) in enumerate(zip(bars, sorted_mean_activations)):
         plt.plot(
             [bar.get_x(), bar.get_x() + bar_width],
             [mean_activation, mean_activation],
             color="black",
         )
-        # plt.scatter(index, mean_activation, color="black", zorder=3)
 
     # Overlay repetitions using colored dots
     for rep_index in range(len(sorted_activation_reps[0])):
