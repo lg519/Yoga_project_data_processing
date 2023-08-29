@@ -44,7 +44,7 @@ def plot_mvc_mapping_table(
     plt.close()
 
 
-def plot_muscle_activation_per_exercise(
+def plot_muscle_activation_per_exercise_different_reps(
     activations,
     channel_names,
     exercise_name,
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     )
 
     for exercise_name, activations in activations_per_exercise.items():
-        plot_muscle_activation_per_exercise(
+        plot_muscle_activation_per_exercise_different_reps(
             activations,
             channel_names,
             exercise_name,

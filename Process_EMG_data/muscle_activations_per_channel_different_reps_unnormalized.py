@@ -11,7 +11,7 @@ from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
 
-def plot_all_reps_muscle_activation_per_channel(
+def plot_muscle_activation_per_channel_different_reps_unnormalized(
     activation_reps,
     exercise_names,
     channel_name,
@@ -88,14 +88,14 @@ def plot_all_reps_muscle_activation_per_channel(
     )
 
     # Add the max MVC filename to the plot
-    plt.text(
-        0.05,
-        0.95,
-        f"MVC used for Normalization: {max_mvc_filename}",
-        transform=plt.gca().transAxes,
-        fontsize=12,
-        style="italic",
-    )
+    # plt.text(
+    #     0.05,
+    #     0.95,
+    #     f"MVC used for Normalization: {max_mvc_filename}",
+    #     transform=plt.gca().transAxes,
+    #     fontsize=12,
+    #     style="italic",
+    # )
 
     plt.tight_layout()
     plt.show()
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         exercise_names = list(activation_reps_dict.keys())
         activation_reps = [reps for reps in activation_reps_dict.values()]
 
-        plot_all_reps_muscle_activation_per_channel(
+        plot_muscle_activation_per_channel_different_reps_unnormalized(
             activation_reps,
             exercise_names,
             channel_name,
