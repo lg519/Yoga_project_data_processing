@@ -27,41 +27,36 @@ def plot_muscle_activation_per_exercise_different_reps(
     exercise_name,
     participant_type,
     save_directory,
+    colors_by_directory,
 ):
     plt.figure(figsize=(8, 8))
     ax = plt.subplot(111, projection="polar")
 
-    num_reps = len(activations[0])
-    colors = plt.cm.tab10(np.linspace(0, 1, num_reps))
-
-    mean_activations = [np.mean([np.mean(rep) for rep in reps]) for reps in activations]
-
     theta = np.linspace(0.0, 2 * np.pi, len(channel_names), endpoint=False)
 
-    ax.plot(
-        np.concatenate([theta, [theta[0]]]),
-        mean_activations + [mean_activations[0]],
-        linestyle="--",
-        color="black",
-        label="Mean Activation",
-        alpha=0.7,
-    )
+    legend_handles = []  # to store legend handles
 
-    for rep_index in range(num_reps):
-        activations_for_rep = [
-            np.mean(activations[channel][rep_index])
-            if len(activations[channel]) > rep_index
-            else 0
-            for channel in range(len(channel_names))
-        ]
+    # Loop over all directories (i.e., color groups)
+    for color, reps_by_color in activations.items():
+        num_reps = len(reps_by_color[0])
 
-        ax.plot(
-            np.concatenate([theta, [theta[0]]]),
-            activations_for_rep + [activations_for_rep[0]],
-            marker="o",
-            color=colors[rep_index],
-            label=f"Rep {rep_index + 1}",
-        )
+        for rep_index in range(num_reps):
+            activations_for_rep = [
+                np.mean(reps_by_color[channel][rep_index])
+                if len(reps_by_color[channel]) > rep_index
+                else 0
+                for channel in range(len(channel_names))
+            ]
+
+            (line,) = ax.plot(
+                np.concatenate([theta, [theta[0]]]),
+                activations_for_rep + [activations_for_rep[0]],
+                marker="o",
+                color=colors_by_directory[color],
+            )
+
+        # Add legend entry for this directory
+        legend_handles.append(line)
 
     font_properties = {"fontsize": 12, "fontweight": "bold"}
     channel_names = [
@@ -73,7 +68,12 @@ def plot_muscle_activation_per_exercise_different_reps(
     ax.set_title(
         f"{participant_type} - {exercise_name}", va="bottom", **font_properties
     )
-    ax.legend(loc="upper right")
+
+    # Use just the basename of the directory for legend labels
+    directory_labels = [os.path.basename(directory) for directory in activations.keys()]
+    ax.legend(
+        legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.25, 1.0)
+    )
 
     plt.tight_layout()
     plot_filename = os.path.join(
@@ -122,7 +122,15 @@ if __name__ == "__main__":
         "Select multiple directories with exercise data"
     )
 
-    overall_activations_per_exercise = defaultdict(list)
+    # Define a color for each directory
+    colors_by_directory = {
+        directory: color
+        for directory, color in zip(
+            directory_paths, plt.cm.tab10(np.linspace(0, 1, len(directory_paths)))
+        )
+    }
+
+    overall_activations_per_exercise = defaultdict(lambda: defaultdict(list))
 
     for directory_path in directory_paths:
         mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
@@ -132,41 +140,32 @@ if __name__ == "__main__":
         activations_per_exercise = compute_exercise_activations(
             filenames, range(len(channel_names)), mvc_values
         )
+        # Sort channel names and reorder related data
+        sorted_indices = np.argsort(channel_names)
+        channel_names = [channel_names[i] for i in sorted_indices]
+        mvc_values = [mvc_values[i] for i in sorted_indices]
+        max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
+
+        # Sort activations for each exercise according to the sorted channel names
+        for exercise_name, activations in activations_per_exercise.items():
+            activations_per_exercise[exercise_name] = [
+                activations[i] for i in sorted_indices
+            ]
 
         # Merging activations
-        overall_activations_per_exercise = merge_activations(
-            overall_activations_per_exercise, activations_per_exercise
-        )
+        for exercise, activations in activations_per_exercise.items():
+            overall_activations_per_exercise[exercise][directory_path] = activations
 
-    # Assuming channel names and sorting are consistent across all directories:
-    sorted_indices = np.argsort(channel_names)
-    channel_names = [channel_names[i] for i in sorted_indices]
-
-    for exercise_name, activations in overall_activations_per_exercise.items():
-        overall_activations_per_exercise[exercise_name] = [
-            activations[i] for i in sorted_indices
-        ]
-
-    save_directory = os.path.join(
-        directory_paths[0], "figures_muscle_activation_per_exercise_circles"
-    )  # Using the first directory as the save path
+    # Create directory to save images where the script is run
+    save_directory = "figures_muscle_activation_per_exercise_circles_overall"
     os.makedirs(save_directory, exist_ok=True)
-
-    # We're only plotting the mapping table for the first directory for now.
-    # If you'd like it for each directory, you'd need a loop around this.
-    plot_mvc_mapping_table(
-        channel_names,
-        max_mvc_filenames,
-        mvc_values,
-        get_partecipant_type(filenames[0]),
-        save_directory,
-    )
 
     for exercise_name, activations in overall_activations_per_exercise.items():
         plot_muscle_activation_per_exercise_different_reps(
             activations,
             channel_names,
             exercise_name,
-            "Overall",  # We use 'Overall' as a generic participant_type since we're combining multiple directories
+            "Overall",  # Use 'Overall' as a generic participant_type since combining multiple directories
             save_directory,
+            colors_by_directory,
         )
