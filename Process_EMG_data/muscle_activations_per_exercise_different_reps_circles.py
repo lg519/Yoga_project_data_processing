@@ -5,43 +5,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mvc_processing import calculate_mvc_for_each_channel
+from mvc_processing import calculate_mvc_for_each_channel, plot_mvc_mapping_table
 from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
-
-
-def plot_mvc_mapping_table(
-    channel_names, max_mvc_filenames, participant_type, save_directory
-):
-    fig, ax = plt.subplots(figsize=(8, 6))
-    stripped_mvc_filenames = [os.path.basename(f) for f in max_mvc_filenames]
-    rows = list(zip(channel_names, stripped_mvc_filenames))
-    table_data = [["Channel Name", "MVC File"]] + rows
-
-    ax.axis("off")
-    table = ax.table(
-        cellText=table_data, cellLoc="center", loc="center", colWidths=[0.4, 0.6]
-    )
-
-    # Increase the font size for the whole table
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-
-    # Bold the header
-    for (i, j), cell in table.get_celld().items():
-        if i == 0:
-            cell.set_text_props(fontweight="bold")
-
-    plt.title(f"{participant_type} - MVC File Mapping")
-    # plt.show()
-
-    # Save the table
-    table_filename = os.path.join(
-        save_directory, f"{participant_type} - MVC File Mapping.png"
-    )
-    plt.savefig(table_filename)
-    plt.close()
 
 
 def plot_muscle_activation_per_exercise_different_reps(
@@ -180,7 +147,7 @@ if __name__ == "__main__":
     os.makedirs(save_directory, exist_ok=True)
 
     plot_mvc_mapping_table(
-        channel_names, max_mvc_filenames, participant_type, save_directory
+        channel_names, max_mvc_filenames, mvc_values, participant_type, save_directory
     )
 
     for exercise_name, activations in activations_per_exercise.items():

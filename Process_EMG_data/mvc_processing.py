@@ -81,6 +81,41 @@ def calculate_mvc_for_each_channel(directory_path):
     return np.array(max_mvc_values), mvc_exercise_names_for_channels
 
 
+def plot_mvc_mapping_table(
+    channel_names, max_mvc_filenames, mvc_values, participant_type, save_directory
+):
+    fig, ax = plt.subplots(figsize=(12, 6))  # Adjust figsize for an extra column
+    stripped_mvc_filenames = [os.path.basename(f) for f in max_mvc_filenames]
+    rows = list(zip(channel_names, stripped_mvc_filenames, mvc_values))
+    table_data = [["Channel Name", "MVC File", "MVC Value"]] + rows
+
+    ax.axis("off")
+    table = ax.table(
+        cellText=table_data,
+        cellLoc="center",
+        loc="center",
+        colWidths=[0.4, 0.4, 0.2],  # Adjusted colWidths for equal spacing
+    )
+
+    # Increase the font size for the whole table
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+
+    # Bold the header
+    for (i, j), cell in table.get_celld().items():
+        if i == 0:
+            cell.set_text_props(fontweight="bold")
+
+    plt.title(f"{participant_type} - MVC File Mapping")
+
+    # Save the table
+    table_filename = os.path.join(
+        save_directory, f"{participant_type} - MVC File Mapping.png"
+    )
+    plt.savefig(table_filename)
+    plt.close()
+
+
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()  # Hide the main window
