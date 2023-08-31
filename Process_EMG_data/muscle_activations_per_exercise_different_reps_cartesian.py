@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # After selecting the directory_path and before plotting:
     save_directory = os.path.join(
-        directory_path, "figures_muscle_activation_per_exercise"
+        directory_path, "figures_muscle_activation_per_exercise_cartesian"
     )
     os.makedirs(save_directory, exist_ok=True)
 
