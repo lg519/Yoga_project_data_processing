@@ -79,13 +79,11 @@ def plot_muscle_activation_per_exercise_different_reps(
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
-    # print(f"file names: {filenames}")
 
     for filename in filenames:
         mat_file = loadmat(filename)
         data = mat_file["data"]
         exercise_name = get_exercise_name(os.path.basename(filename))
-        # print(f"exercise name: {exercise_name}")
 
         for channel_index in channel_indices:
             processed_data = normalize_signal(
@@ -111,18 +109,18 @@ if __name__ == "__main__":
     mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
     channel_names = get_channel_names(directory_path)
 
-    # Sort channel names and reorder related data
-    sorted_indices = np.argsort(channel_names)
-    channel_names = [channel_names[i] for i in sorted_indices]
-    mvc_values = [mvc_values[i] for i in sorted_indices]
-    max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
-
     filenames = get_mat_filenames(directory_path)
     participant_type = get_partecipant_type(filenames[0])
 
     activations_per_exercise = compute_exercise_activations(
         filenames, range(len(channel_names)), mvc_values
     )
+
+    # Sort channel names and reorder related data right before plotting
+    sorted_indices = np.argsort(channel_names)
+    channel_names = [channel_names[i] for i in sorted_indices]
+    mvc_values = [mvc_values[i] for i in sorted_indices]
+    max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
 
     # Sort activations for each exercise according to the sorted channel names
     for exercise_name, activations in activations_per_exercise.items():

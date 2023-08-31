@@ -25,7 +25,7 @@ def get_mvc_files(directory_path):
     mvc_files = []
     mvc_filenames = []
     for filename in os.listdir(directory_path):
-        if fnmatch.fnmatch(filename, "*MVC*.mat"):
+        if fnmatch.fnmatch(filename, "*.mat"):
             filepath = os.path.join(directory_path, filename)
             mat = loadmat(filepath)
             data = mat["data"]
