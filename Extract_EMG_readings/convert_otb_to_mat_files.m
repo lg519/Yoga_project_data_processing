@@ -21,6 +21,9 @@ for idx = 1:length(files)
     
     mkdir('tmpopen');
     
+    % Debug
+    disp(['Processing: ' FILENAME]);
+    
     untar([PATHNAME '/' FILENAME],'tmpopen');
     signals=dir(fullfile('tmpopen','*.sig'));
     for nSig=1:length(signals)
