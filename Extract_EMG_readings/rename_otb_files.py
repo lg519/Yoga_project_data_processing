@@ -1,7 +1,7 @@
 import os
 import shutil
-import re
 from collections import defaultdict
+import re
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 
@@ -30,36 +30,38 @@ def rename_files():
     with open(txt_file, "r") as f:
         yoga_poses = f.read().splitlines()
 
-    # Get the list of EMG recording files
-    files = [
-        f
-        for f in os.listdir(src_folder)
-        if os.path.isfile(os.path.join(src_folder, f)) and f.endswith(".otb+")
+    # Get the list of all files
+    all_files = [
+        f for f in os.listdir(src_folder) if os.path.isfile(os.path.join(src_folder, f))
     ]
 
-    print(f"files = {files}")
+    # Filter out the EMG recording files
+    otb_files = [f for f in all_files if f.endswith(".otb+")]
+
+    # Copy files that don't end with .otb+ to the destination folder
+    for f in all_files:
+        if not f.endswith(".otb+"):
+            shutil.copy(os.path.join(src_folder, f), os.path.join(dest_folder, f))
+
     # Perform a sanity check
-    if len(yoga_poses) != len(files):
+    if len(yoga_poses) != len(otb_files):
         print("len(yoga_poses) = ", len(yoga_poses))
-        print("len(files) = ", len(files))
+        print("len(otb_files) = ", len(otb_files))
         print("The number of yoga poses does not match the number of files.")
         return
 
     # Track the repetition of each pose
     pose_counter = defaultdict(int)
 
-    # Sort files based on date and time
-    files.sort(key=lambda x: x[-19:-5])
+    # Sort otb_files based on date and time
+    otb_files.sort(key=lambda x: x[-19:-5])
 
     # Iterate through each file and rename
-    for i, filename in enumerate(files):
+    for i, filename in enumerate(otb_files):
         filename_without_number = re.sub(r"_\d+\.", ".", filename)
-        # Extract the date and time from the original filename
-        date_time = filename_without_number[
-            -19:-5
-        ]  # year, month, day, hour, minutes, seconds in a specific format
 
-        # Format the date and time
+        # Extract and format the date and time from the original filename
+        date_time = filename_without_number[-19:-5]
         formatted_date = "_".join([date_time[6:8], date_time[4:6], date_time[0:4]])
         formatted_time = "_".join([date_time[8:10], date_time[10:12], date_time[12:]])
 
@@ -76,7 +78,7 @@ def rename_files():
             pose_counter[current_pose],
         )
 
-        # Copy the file with the new name to the destination folder
+        # Copy the otb file with the new name to the destination folder
         shutil.copy(
             os.path.join(src_folder, filename), os.path.join(dest_folder, new_filename)
         )
