@@ -13,12 +13,21 @@ from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 
 def select_multiple_directories(title="Select Directories"):
     directories = []
-    while True:
-        directory = filedialog.askdirectory(title=title)
-        if not directory:  # User either selected 'Cancel' or closed the dialog
-            break
-        directories.append(directory)
+
+    root_directory = filedialog.askdirectory(title=title)
+    if root_directory:  # User didn't press cancel or close
+        # Scan for all folders inside root_directory that ends with MAT
+        for subdirectory in os.listdir(root_directory):
+            if subdirectory.endswith("MAT"):
+                directories.append(os.path.join(root_directory, subdirectory))
+
     return directories
+
+
+def generate_colors(n):
+    """Generate n distinct colors using the viridis colormap."""
+    colormap = plt.cm.viridis
+    return [colormap(i) for i in np.linspace(0, 1, n)]
 
 
 def plot_muscle_activation_per_exercise_different_reps(
@@ -69,8 +78,11 @@ def plot_muscle_activation_per_exercise_different_reps(
         f"{participant_type} - {exercise_name}", va="bottom", **font_properties
     )
 
-    # Use just the basename of the directory for legend labels
-    directory_labels = [os.path.basename(directory) for directory in activations.keys()]
+    # Use just the first part (before the first underscore) of the directory for legend labels
+    directory_labels = [
+        os.path.basename(directory).split("_")[0] for directory in activations.keys()
+    ]
+
     ax.legend(
         legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.25, 1.0)
     )
@@ -126,7 +138,7 @@ if __name__ == "__main__":
     colors_by_directory = {
         directory: color
         for directory, color in zip(
-            directory_paths, plt.cm.tab10(np.linspace(0, 1, len(directory_paths)))
+            directory_paths, generate_colors(len(directory_paths))
         )
     }
 
