@@ -35,7 +35,9 @@ import numpy as np
 from scipy.stats import pearsonr
 
 
-def average_pearson_coefficient_over_directories(activations_by_directory):
+def average_pearson_coefficient_over_directories(
+    activations_by_directory, exercise_name
+):
     """Calculate the average Pearson correlation between reps of the same exercise
     across directories based on their activations."""
 
@@ -43,6 +45,7 @@ def average_pearson_coefficient_over_directories(activations_by_directory):
 
     # List of 8-dimensional vectors for each rep in every directory
     vectors_per_rep = []
+    directory_rep_info = []  # Store directory and rep index for each vector
 
     # Loop over all directories (i.e., sessions or individuals)
     for (
@@ -59,11 +62,17 @@ def average_pearson_coefficient_over_directories(activations_by_directory):
                 for channel_activations in channel_activations_by_directory
             ]
             vectors_per_rep.append(vector_for_rep)
+            directory_rep_info.append(
+                (directory_path, rep_index)
+            )  # Store the directory and rep info
 
     # Check and print vectors with NaN or inf values
     for i, vec in enumerate(vectors_per_rep):
         if np.any(np.isnan(vec)) or np.any(np.isinf(vec)):
-            print(f"Vector at index {i} has problematic values: {vec}")
+            directory, rep_index = directory_rep_info[i]
+            print(
+                f"Exercise: {exercise_name}, Directory: {directory}, Rep: {rep_index} has problematic values: {vec}"
+            )
 
     # Compute correlations among vectors of reps
     for i in range(len(vectors_per_rep)):
@@ -148,8 +157,9 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     # Compute and display the Pearson coefficient for the current exercise
     pearson_coefficient = average_pearson_coefficient_over_directories(
-        activations_by_directory
+        activations_by_directory, exercise_name
     )
+
     ax.annotate(
         f"Pearson Coefficient: {pearson_coefficient:.2f}",
         xy=(0.02, 0.02),  # Adjust these values for desired padding
