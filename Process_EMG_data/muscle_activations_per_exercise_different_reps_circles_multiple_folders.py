@@ -9,6 +9,7 @@ from mvc_processing import calculate_mvc_for_each_channel, plot_mvc_mapping_tabl
 from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
+from scipy.stats import pearsonr
 
 
 def select_multiple_directories(title="Select Directories"):
@@ -30,8 +31,62 @@ def generate_colors(n):
     return [colormap(i) for i in np.linspace(0, 1, n)]
 
 
+import numpy as np
+from scipy.stats import pearsonr
+
+
+def average_pearson_coefficient_over_directories(activations_by_directory):
+    """Calculate the average Pearson correlation between reps of the same exercise
+    across directories based on their activations."""
+
+    correlations = []
+
+    # List of 8-dimensional vectors for each rep in every directory
+    vectors_per_rep = []
+
+    # Loop over all directories (i.e., sessions or individuals)
+    for (
+        directory_path,
+        channel_activations_by_directory,
+    ) in activations_by_directory.items():
+        # Number of reps (assuming all channels have the same number of reps)
+        num_reps = len(channel_activations_by_directory[0])
+
+        # Construct vectors for each rep in the current directory
+        for rep_index in range(num_reps):
+            vector_for_rep = [
+                np.mean(channel_activations[rep_index]) if channel_activations else 0
+                for channel_activations in channel_activations_by_directory
+            ]
+            vectors_per_rep.append(vector_for_rep)
+
+    # Check and print vectors with NaN or inf values
+    for i, vec in enumerate(vectors_per_rep):
+        if np.any(np.isnan(vec)) or np.any(np.isinf(vec)):
+            print(f"Vector at index {i} has problematic values: {vec}")
+
+    # Compute correlations among vectors of reps
+    for i in range(len(vectors_per_rep)):
+        for j in range(i + 1, len(vectors_per_rep)):
+            if len(vectors_per_rep[i]) == len(
+                vectors_per_rep[j]
+            ):  # Ensure the vectors have the same length
+                # Check if either vector contains NaN or inf before correlation calculation
+                if (
+                    np.any(np.isnan(vectors_per_rep[i]))
+                    or np.any(np.isnan(vectors_per_rep[j]))
+                    or np.any(np.isinf(vectors_per_rep[i]))
+                    or np.any(np.isinf(vectors_per_rep[j]))
+                ):
+                    continue
+                correlation, _ = pearsonr(vectors_per_rep[i], vectors_per_rep[j])
+                correlations.append(correlation)
+
+    return np.mean(correlations)
+
+
 def plot_muscle_activation_per_exercise_different_reps(
-    activations,
+    overall_activations_by_exercise,
     channel_names,
     exercise_name,
     participant_type,
@@ -45,8 +100,11 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     legend_handles = []  # to store legend handles
 
+    # Activations for the given exercise
+    activations_by_directory = overall_activations_by_exercise[exercise_name]
+
     # Loop over all directories (i.e., color groups)
-    for color, reps_by_color in activations.items():
+    for color, reps_by_color in activations_by_directory.items():
         num_reps = len(reps_by_color[0])
 
         for rep_index in range(num_reps):
@@ -80,11 +138,26 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     # Use just the first part (before the first underscore) of the directory for legend labels
     directory_labels = [
-        os.path.basename(directory).split("_")[0] for directory in activations.keys()
+        os.path.basename(directory).split("_")[0]
+        for directory in activations_by_directory.keys()
     ]
 
     ax.legend(
         legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.25, 1.0)
+    )
+
+    # Compute and display the Pearson coefficient for the current exercise
+    pearson_coefficient = average_pearson_coefficient_over_directories(
+        activations_by_directory
+    )
+    ax.annotate(
+        f"Pearson Coefficient: {pearson_coefficient:.2f}",
+        xy=(0.02, 0.02),  # Adjust these values for desired padding
+        xycoords="axes fraction",
+        fontsize=12,
+        fontweight="bold",
+        verticalalignment="bottom",
+        horizontalalignment="left",
     )
 
     plt.tight_layout()
@@ -142,6 +215,9 @@ if __name__ == "__main__":
         )
     }
 
+    # overall_activations_per_exercise has the following structure:
+    # overall_activations_per_exercise[exercise_name][directory_path][channel_index][rep_index]
+    # and is a dictionary of dictionaries of lists of lists
     overall_activations_per_exercise = defaultdict(lambda: defaultdict(list))
 
     for directory_path in directory_paths:
@@ -172,12 +248,14 @@ if __name__ == "__main__":
     save_directory = "figures_muscle_activation_per_exercise_circles_overall"
     os.makedirs(save_directory, exist_ok=True)
 
-    for exercise_name, activations in overall_activations_per_exercise.items():
+    for exercise_name in overall_activations_per_exercise:
+        if "MVC" in exercise_name:  # Skip exercises with "MVC" in their name
+            continue
         plot_muscle_activation_per_exercise_different_reps(
-            activations,
+            overall_activations_per_exercise,  # pass the overall data
             channel_names,
             exercise_name,
-            "Overall",  # Use 'Overall' as a generic participant_type since combining multiple directories
+            "Overall",
             save_directory,
             colors_by_directory,
         )
