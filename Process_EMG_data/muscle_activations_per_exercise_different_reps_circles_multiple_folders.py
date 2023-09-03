@@ -71,7 +71,7 @@ def average_pearson_coefficient_over_directories(
         if np.any(np.isnan(vec)) or np.any(np.isinf(vec)):
             directory, rep_index = directory_rep_info[i]
             print(
-                f"Exercise: {exercise_name}, Directory: {directory}, Rep: {rep_index} has problematic values: {vec}"
+                f"Exercise: {exercise_name}, Directory: {directory}, Rep: {rep_index + 1} has problematic values: {vec}"
             )
 
     # Compute correlations among vectors of reps
@@ -178,13 +178,32 @@ def plot_muscle_activation_per_exercise_different_reps(
     plt.close()
 
 
+def get_rep_number(filename):
+    """Extracts the repetition number from the filename."""
+    base_name = os.path.basename(filename)
+    rep_num_str = base_name.split("_rep")[-1].split(".")[
+        0
+    ]  # Assuming the extension comes after "_repX"
+    return int(rep_num_str)
+
+
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
+    # Dictionary to keep track of the last rep number for each exercise
+    last_rep_for_exercise = defaultdict(int)
+
+    print(f"filenames: {filenames}")
     for filename in filenames:
         mat_file = loadmat(filename)
         data = mat_file["data"]
         exercise_name = get_exercise_name(os.path.basename(filename))
+
+        # Checking rep order for each exercise
+        current_rep = get_rep_number(filename)
+        if current_rep <= last_rep_for_exercise[exercise_name]:
+            print(f"Error: {filename} is out of order for {exercise_name}")
+        last_rep_for_exercise[exercise_name] = current_rep
 
         for channel_index in channel_indices:
             processed_data = normalize_signal(
@@ -228,7 +247,7 @@ if __name__ == "__main__":
     # overall_activations_per_exercise has the following structure:
     # overall_activations_per_exercise[exercise_name][directory_path][channel_index][rep_index]
     # and is a dictionary of dictionaries of lists of lists
-    overall_activations_per_exercise = defaultdict(lambda: defaultdict(list))
+    overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
 
     for directory_path in directory_paths:
         mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
@@ -252,17 +271,17 @@ if __name__ == "__main__":
 
         # Merging activations
         for exercise, activations in activations_per_exercise.items():
-            overall_activations_per_exercise[exercise][directory_path] = activations
+            overall_activations_by_exercise[exercise][directory_path] = activations
 
     # Create directory to save images where the script is run
     save_directory = "figures_muscle_activation_per_exercise_circles_overall"
     os.makedirs(save_directory, exist_ok=True)
 
-    for exercise_name in overall_activations_per_exercise:
+    for exercise_name in overall_activations_by_exercise:
         if "MVC" in exercise_name:  # Skip exercises with "MVC" in their name
             continue
         plot_muscle_activation_per_exercise_different_reps(
-            overall_activations_per_exercise,  # pass the overall data
+            overall_activations_by_exercise,  # pass the overall data
             channel_names,
             exercise_name,
             "Overall",

@@ -21,6 +21,16 @@ def plot_muscle_activation_per_exercise_different_reps(
     plt.figure(figsize=(8, 8))
     ax = plt.subplot(111, projection="polar")
 
+    # Checks for empty reps and activations
+    for reps, channel in zip(activations, channel_names):
+        if len(reps) == 0:
+            print(f"Empty reps for Exercise: {exercise_name}, Channel: {channel}")
+        for rep_num, rep in enumerate(reps, start=1):
+            if len(rep) == 0:
+                print(
+                    f"Empty rep #{rep_num} in Exercise: {exercise_name}, Channel: {channel}"
+                )
+
     # Get the number of reps for the first channel (assuming consistent repetitions across channels)
     num_reps = len(activations[0])
     colors = plt.cm.tab10(np.linspace(0, 1, num_reps))
@@ -46,6 +56,13 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     # Plot lines connecting the mean activation for each repetition across channels
     for rep_index in range(num_reps):
+        # Check for empty activation
+        for channel in range(len(channel_names)):
+            if len(activations[channel]) <= rep_index:
+                print(
+                    f"Empty activation for Exercise: {exercise_name}, Channel: {channel_names[channel]}, Rep: {rep_index}"
+                )
+
         activations_for_rep = [
             np.mean(activations[channel][rep_index])
             if len(activations[channel]) > rep_index
