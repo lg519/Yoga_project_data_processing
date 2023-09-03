@@ -48,12 +48,6 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
     return max_mean_value
 
 
-def calculate_mvc_for_channel_using_absolute_max_value(
-    data, sampling_frequency, window_duration=0.5
-):
-    return np.max(data)
-
-
 def calculate_mvc_for_each_channel(directory_path):
     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)

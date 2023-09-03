@@ -31,10 +31,6 @@ def generate_colors(n):
     return [colormap(i) for i in np.linspace(0, 1, n)]
 
 
-import numpy as np
-from scipy.stats import pearsonr
-
-
 def average_pearson_coefficient_over_directories(
     activations_by_directory, exercise_name
 ):
