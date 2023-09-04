@@ -10,6 +10,7 @@ import fnmatch
 import os
 from utilis import get_exercise_name
 from apply_processing_pipeline import extract_envelope
+import tkinter as tk
 
 
 def process_mvc_data_for_channel(channel_data):
@@ -48,31 +49,73 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
     return max_mean_value
 
 
+# def calculate_mvc_for_each_channel(directory_path):
+#     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
+#     channel_names = get_channel_names(directory_path)
+
+#     max_mvc_values = []
+#     mvc_exercise_names_for_channels = []
+
+#     for i, channel_name in enumerate(channel_names):
+#         max_mvc_value = float("-inf")
+#         max_mvc_value_index = 0
+
+#         for j, mvc_data in enumerate(mvc_datas):
+#             channel_data = mvc_data[i, :]
+#             mvc_value = process_mvc_data_for_channel(channel_data)
+
+#             if mvc_value > max_mvc_value:
+#                 max_mvc_value = mvc_value
+#                 max_mvc_value_index = j
+
+#         max_mvc_values.append(max_mvc_value)
+#         mvc_exercise_names_for_channels.append(
+#             get_exercise_name(mvc_filenames[max_mvc_value_index])
+#         )
+
+#     return np.array(max_mvc_values), mvc_exercise_names_for_channels
+
+
+def select_files_for_channels_gui(directory_path):
+    """Prompt the user to select specific files for each channel using a GUI."""
+
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    channel_names = get_channel_names(directory_path)
+    selected_files = []
+
+    for channel_name in channel_names:
+        filepath = filedialog.askopenfilename(
+            initialdir=directory_path,
+            title=f"Select a file for {channel_name}",
+            filetypes=(("MAT files", "*.mat"), ("all files", "*.*")),
+        )
+        if filepath:  # If user didn't cancel the dialog
+            filename = os.path.basename(filepath)
+            selected_files.append(filename)
+        else:
+            print(f"No file selected for {channel_name}. Exiting.")
+            return []
+
+    return selected_files
+
+
 def calculate_mvc_for_each_channel(directory_path):
-    mvc_datas, mvc_filenames = get_mvc_files(directory_path)
+    selected_file_paths = select_files_for_channels_gui(directory_path)
     channel_names = get_channel_names(directory_path)
 
     max_mvc_values = []
-    mvc_exercise_names_for_channels = []
 
     for i, channel_name in enumerate(channel_names):
-        max_mvc_value = float("-inf")
-        max_mvc_value_index = 0
+        filepath = os.path.join(directory_path, selected_file_paths[i])
+        mat = loadmat(filepath)
+        data = mat["data"]
+        channel_data = data[i, :]
+        mvc_value = process_mvc_data_for_channel(channel_data)
+        max_mvc_values.append(mvc_value)
 
-        for j, mvc_data in enumerate(mvc_datas):
-            channel_data = mvc_data[i, :]
-            mvc_value = process_mvc_data_for_channel(channel_data)
-
-            if mvc_value > max_mvc_value:
-                max_mvc_value = mvc_value
-                max_mvc_value_index = j
-
-        max_mvc_values.append(max_mvc_value)
-        mvc_exercise_names_for_channels.append(
-            get_exercise_name(mvc_filenames[max_mvc_value_index])
-        )
-
-    return np.array(max_mvc_values), mvc_exercise_names_for_channels
+    return np.array(max_mvc_values), selected_file_paths
 
 
 def plot_mvc_mapping_table(

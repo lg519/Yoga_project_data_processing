@@ -158,7 +158,7 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     ax.annotate(
         f"Pearson Coefficient: {pearson_coefficient:.2f}",
-        xy=(0.02, 0.02),  # Adjust these values for desired padding
+        xy=(-0.10, 0.20),  # Adjust these values for desired padding
         xycoords="axes fraction",
         fontsize=12,
         fontweight="bold",
@@ -189,7 +189,6 @@ def compute_exercise_activations(filenames, channel_indices, mvc_values):
     # Dictionary to keep track of the last rep number for each exercise
     last_rep_for_exercise = defaultdict(int)
 
-    print(f"filenames: {filenames}")
     for filename in filenames:
         mat_file = loadmat(filename)
         data = mat_file["data"]
