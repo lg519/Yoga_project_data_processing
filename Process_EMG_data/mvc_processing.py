@@ -101,8 +101,40 @@ def select_files_for_channels_gui(directory_path):
     return selected_files
 
 
+def auto_select_files_for_channels(directory_path):
+    """Automatically select files for each channel based on pose names."""
+
+    pose_names = [
+        "Dolphin",
+        "chaturanga",
+        "Crow",
+        "Locust",
+        "Dolphin",
+        "Parivrita_Parsvakonasana_left",
+        "Uttitahasta_Padangustasana_b_right",
+        "Childs_pose",
+    ]
+
+    all_files = [f for f in os.listdir(directory_path) if f.endswith(".mat")]
+
+    selected_files = []
+
+    for pose_name in pose_names:
+        matched_files = [f for f in all_files if pose_name in f and "_rep1" in f]
+
+        # If multiple matches are found for the same pose, you might want to add additional logic to select the desired one.
+        # Here, I'm simply taking the first match.
+        if matched_files:
+            selected_files.append(matched_files[0])
+        else:
+            print(f"No file found for pose: {pose_name} with _rep1. Exiting.")
+            return []
+
+    return selected_files
+
+
 def calculate_mvc_for_each_channel(directory_path):
-    selected_file_paths = select_files_for_channels_gui(directory_path)
+    selected_file_paths = auto_select_files_for_channels(directory_path)
     channel_names = get_channel_names(directory_path)
 
     max_mvc_values = []
