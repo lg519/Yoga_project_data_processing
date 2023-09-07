@@ -1,5 +1,5 @@
 EMG_Data/
 __pycache__/
-Process_EMG_data/__pycache__/
+Process_EMG_data/__pycache__
 figures_muscle_activation_per_exercise_circles_overall
 figures_muscle_activation_per_exercise_circles_overall_fixed_mvc
