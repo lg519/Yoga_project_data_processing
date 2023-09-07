@@ -9,9 +9,12 @@ from mvc_processing import calculate_mvc_for_each_channel, plot_mvc_mapping_tabl
 from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
-from scipy.stats import pearsonr
-import pingouin as pg
-import pandas as pd
+
+from similarity_metrics import (
+    average_pearson_coefficient_over_directories,
+    compute_icc_for_exercise,
+    average_cosine_similarity_over_directories,
+)
 
 
 def select_multiple_directories(title="Select Directories"):
@@ -31,110 +34,6 @@ def generate_colors(n):
     """Generate n distinct colors using the viridis colormap."""
     colormap = plt.cm.viridis
     return [colormap(i) for i in np.linspace(0, 1, n)]
-
-
-def average_pearson_coefficient_over_directories(
-    activations_by_directory, exercise_name
-):
-    """Calculate the average Pearson correlation between reps of the same exercise
-    across directories based on their activations."""
-
-    correlations = []
-
-    # List of 8-dimensional vectors for each rep in every directory
-    vectors_per_rep = []
-    directory_rep_info = []  # Store directory and rep index for each vector
-
-    # Loop over all directories (i.e., sessions or individuals)
-    for (
-        directory_path,
-        channel_activations_by_directory,
-    ) in activations_by_directory.items():
-        # Number of reps (assuming all channels have the same number of reps)
-        num_reps = len(channel_activations_by_directory[0])
-
-        # Construct vectors for each rep in the current directory
-        for rep_index in range(num_reps):
-            vector_for_rep = [
-                np.mean(channel_activations[rep_index]) if channel_activations else 0
-                for channel_activations in channel_activations_by_directory
-            ]
-            vectors_per_rep.append(vector_for_rep)
-            directory_rep_info.append(
-                (directory_path, rep_index)
-            )  # Store the directory and rep info
-
-    # Check and print vectors with NaN or inf values
-    for i, vec in enumerate(vectors_per_rep):
-        if np.any(np.isnan(vec)) or np.any(np.isinf(vec)):
-            directory, rep_index = directory_rep_info[i]
-            print(
-                f"Exercise: {exercise_name}, Directory: {directory}, Rep: {rep_index + 1} has problematic values: {vec}"
-            )
-
-    # Compute correlations among vectors of reps
-    for i in range(len(vectors_per_rep)):
-        for j in range(i + 1, len(vectors_per_rep)):
-            if len(vectors_per_rep[i]) == len(
-                vectors_per_rep[j]
-            ):  # Ensure the vectors have the same length
-                # Check if either vector contains NaN or inf before correlation calculation
-                if (
-                    np.any(np.isnan(vectors_per_rep[i]))
-                    or np.any(np.isnan(vectors_per_rep[j]))
-                    or np.any(np.isinf(vectors_per_rep[i]))
-                    or np.any(np.isinf(vectors_per_rep[j]))
-                ):
-                    continue
-                correlation, _ = pearsonr(vectors_per_rep[i], vectors_per_rep[j])
-                correlations.append(correlation)
-
-    return np.mean(correlations)
-
-
-def compute_icc_for_exercise(activations_by_directory, exercise_name):
-    """Calculate the ICC across repetitions of the same exercise based on their activations."""
-    data = []
-    row_labels = []
-    for (
-        directory_path,
-        channel_activations_by_directory,
-    ) in activations_by_directory.items():
-        # Number of reps (assuming all channels have the same number of reps)
-        num_reps = len(channel_activations_by_directory[0])
-        for rep_index in range(num_reps):
-            vector_for_rep = [
-                np.mean(channel_activations[rep_index]) if channel_activations else 0
-                for channel_activations in channel_activations_by_directory
-            ]
-            data.append(vector_for_rep)
-            row_labels.append(
-                f"{os.path.basename(directory_path).split('_')[0]}_Rep{rep_index+1}"
-            )
-
-    # Naming the columns
-    num_channels = len(data[0])
-    column_names = [f"Channel_{i+1}" for i in range(num_channels)]
-
-    df = pd.DataFrame(data, columns=column_names, index=row_labels)
-    # Reshaping the dataframe
-    df_melted = df.melt(
-        ignore_index=False, var_name="target", value_name="rating"
-    ).reset_index()
-    df_melted.columns = ["rater", "target", "rating"]
-    print(f"Melted dataframe for exercise {exercise_name}")
-    print(df_melted)
-
-    # Compute the ICC
-    icc_results = pg.intraclass_corr(
-        data=df_melted, targets="target", raters="rater", ratings="rating"
-    ).round(3)
-    print(f"\nICC results for exercise {exercise_name}:")
-    print(icc_results)
-
-    # Extract ICC2 value from the results
-    icc2_value = icc_results.loc[icc_results["Type"] == "ICC2", "ICC"].values[0]
-    return icc2_value
 
 
 def plot_muscle_activation_per_exercise_different_reps(
@@ -172,6 +71,7 @@ def plot_muscle_activation_per_exercise_different_reps(
                 activations_for_rep + [activations_for_rep[0]],
                 marker="o",
                 color=colors_by_directory[color],
+                alpha=0.3,
             )
 
         # Add legend entry for this directory
@@ -195,26 +95,32 @@ def plot_muscle_activation_per_exercise_different_reps(
     ]
 
     ax.legend(
-        legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.25, 1.0)
+        legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.50, 1.0)
     )
 
-    # Compute and display the Pearson coefficient for the current exercise
+    # Compute the Pearson coefficient for the current exercise
     pearson_coefficient = average_pearson_coefficient_over_directories(
         activations_by_directory, exercise_name
     )
 
-    ## Compute and display the ICC for the current exercise
+    # Compute the ICC for the current exercise
     icc2_value = compute_icc_for_exercise(activations_by_directory, exercise_name)
-    # Annotate Pearson coefficient and ICC2
+
+    # Compute the cosine similarity for the current exercise
+    cosine_similarity = average_cosine_similarity_over_directories(
+        activations_by_directory, exercise_name
+    )
+
+    # Display the Pearson coefficient, ICC, and cosine similarity in the plot
     ax.annotate(
-        f"Pearson: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}",
-        xy=(1.10, -0.25),  # Adjust these values for desired padding
+        f"Pearson: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}\nCosine Similarity: {cosine_similarity:.2f}",
+        xy=(1.10, -0.15),  # Adjust these values for desired padding
         xycoords="axes fraction",
         fontsize=12,
         fontweight="bold",
         verticalalignment="bottom",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.75),
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     plt.tight_layout()
