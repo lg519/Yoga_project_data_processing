@@ -18,16 +18,23 @@ from similarity_metrics import (
 
 
 def select_multiple_directories(title="Select Directories"):
-    directories = []
+    all_directories = []
+    yt_directories = []
+    yp_directories = []
 
     root_directory = filedialog.askdirectory(title=title)
     if root_directory:  # User didn't press cancel or close
         # Scan for all folders inside root_directory that ends with MAT
         for subdirectory in os.listdir(root_directory):
             if subdirectory.endswith("MAT"):
-                directories.append(os.path.join(root_directory, subdirectory))
+                full_path = os.path.join(root_directory, subdirectory)
+                all_directories.append(full_path)
+                if os.path.basename(subdirectory).startswith("YT"):
+                    yt_directories.append(full_path)
+                elif os.path.basename(subdirectory).startswith("YP"):
+                    yp_directories.append(full_path)
 
-    return directories
+    return yt_directories, yp_directories, all_directories
 
 
 def generate_colors(n):
@@ -170,80 +177,74 @@ def compute_exercise_activations(filenames, channel_indices, mvc_values):
     return activations_per_exercise
 
 
-def merge_activations(old_activations, new_activations):
-    for exercise, channels in new_activations.items():
-        if exercise not in old_activations:
-            old_activations[exercise] = channels
-        else:
-            for i, reps in enumerate(channels):
-                old_activations[exercise][i].extend(reps)
-    return old_activations
-
-
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()
 
-    directory_paths = select_multiple_directories(
-        "Select multiple directories with exercise data"
+    yt_directories, yp_directories, all_directories = select_multiple_directories(
+        "Select root directory with exercise data"
     )
 
-    # Define a color for each directory
-    colors_by_directory = {
-        directory: color
-        for directory, color in zip(
-            directory_paths, generate_colors(len(directory_paths))
+    # Loop over each group of directories
+    for directory_paths, participant_type in zip(
+        [yt_directories, yp_directories, all_directories], ["YT", "YP", "Overall"]
+    ):
+        # Define a color for each directory
+        colors_by_directory = {
+            directory: color
+            for directory, color in zip(
+                directory_paths, generate_colors(len(directory_paths))
+            )
+        }
+
+        # overall_activations_per_exercise has the following structure:
+        # overall_activations_per_exercise[exercise_name][directory_path][channel_index][rep_index]
+        # and is a dictionary of dictionaries of lists of lists
+        overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
+
+        use_automatic = True  # Set to False to use the "fixed" version. You can change this based on your preference.
+
+        for directory_path in directory_paths:
+            mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
+                directory_path, use_automatic
+            )
+            channel_names = get_channel_names(directory_path)
+            filenames = get_mat_filenames(directory_path)
+
+            activations_per_exercise = compute_exercise_activations(
+                filenames, range(len(channel_names)), mvc_values
+            )
+            # Sort channel names and reorder related data
+            sorted_indices = np.argsort(channel_names)
+            channel_names = [channel_names[i] for i in sorted_indices]
+            mvc_values = [mvc_values[i] for i in sorted_indices]
+            max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
+
+            # Sort activations for each exercise according to the sorted channel names
+            for exercise_name, activations in activations_per_exercise.items():
+                activations_per_exercise[exercise_name] = [
+                    activations[i] for i in sorted_indices
+                ]
+
+            # Merging activations
+            for exercise, activations in activations_per_exercise.items():
+                overall_activations_by_exercise[exercise][directory_path] = activations
+
+        save_suffix = "_automatic" if use_automatic else "_fixed"
+        main_directory = (
+            f"figures_muscle_activation_per_exercise_circles_overall{save_suffix}"
         )
-    }
+        save_directory = os.path.join(main_directory, participant_type)
+        os.makedirs(save_directory, exist_ok=True)
 
-    # overall_activations_per_exercise has the following structure:
-    # overall_activations_per_exercise[exercise_name][directory_path][channel_index][rep_index]
-    # and is a dictionary of dictionaries of lists of lists
-    overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
-
-    use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
-
-    for directory_path in directory_paths:
-        mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
-            directory_path, use_automatic
-        )
-        channel_names = get_channel_names(directory_path)
-        filenames = get_mat_filenames(directory_path)
-
-        activations_per_exercise = compute_exercise_activations(
-            filenames, range(len(channel_names)), mvc_values
-        )
-        # Sort channel names and reorder related data
-        sorted_indices = np.argsort(channel_names)
-        channel_names = [channel_names[i] for i in sorted_indices]
-        mvc_values = [mvc_values[i] for i in sorted_indices]
-        max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
-
-        # Sort activations for each exercise according to the sorted channel names
-        for exercise_name, activations in activations_per_exercise.items():
-            activations_per_exercise[exercise_name] = [
-                activations[i] for i in sorted_indices
-            ]
-
-        # Merging activations
-        for exercise, activations in activations_per_exercise.items():
-            overall_activations_by_exercise[exercise][directory_path] = activations
-
-    # Create directory to save images where the script is run
-    save_suffix = "_automatic" if use_automatic else "_fixed"
-    save_directory = (
-        f"figures_muscle_activation_per_exercise_circles_overall{save_suffix}"
-    )
-    os.makedirs(save_directory, exist_ok=True)
-
-    for exercise_name in overall_activations_by_exercise:
-        if "MVC" in exercise_name:  # Skip exercises with "MVC" in their name
-            continue
-        plot_muscle_activation_per_exercise_different_reps(
-            overall_activations_by_exercise,  # pass the overall data
-            channel_names,
-            exercise_name,
-            "Overall",
-            save_directory,
-            colors_by_directory,
-        )
+        for exercise_name in overall_activations_by_exercise:
+            if "MVC" in exercise_name:  # Skip exercises with "MVC" in their name
+                continue
+            plot_muscle_activation_per_exercise_different_reps(
+                overall_activations_by_exercise,  # pass the overall data
+                channel_names,
+                exercise_name,
+                participant_type,
+                save_directory,
+                colors_by_directory,
+            )
