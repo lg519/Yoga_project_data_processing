@@ -10,6 +10,8 @@ from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
 from scipy.stats import pearsonr
+import pingouin as pg
+import pandas as pd
 
 
 def select_multiple_directories(title="Select Directories"):
@@ -90,6 +92,51 @@ def average_pearson_coefficient_over_directories(
     return np.mean(correlations)
 
 
+def compute_icc_for_exercise(activations_by_directory, exercise_name):
+    """Calculate the ICC across repetitions of the same exercise based on their activations."""
+    data = []
+    row_labels = []
+    for (
+        directory_path,
+        channel_activations_by_directory,
+    ) in activations_by_directory.items():
+        # Number of reps (assuming all channels have the same number of reps)
+        num_reps = len(channel_activations_by_directory[0])
+        for rep_index in range(num_reps):
+            vector_for_rep = [
+                np.mean(channel_activations[rep_index]) if channel_activations else 0
+                for channel_activations in channel_activations_by_directory
+            ]
+            data.append(vector_for_rep)
+            row_labels.append(
+                f"{os.path.basename(directory_path).split('_')[0]}_Rep{rep_index+1}"
+            )
+
+    # Naming the columns
+    num_channels = len(data[0])
+    column_names = [f"Channel_{i+1}" for i in range(num_channels)]
+
+    df = pd.DataFrame(data, columns=column_names, index=row_labels)
+    # Reshaping the dataframe
+    df_melted = df.melt(
+        ignore_index=False, var_name="target", value_name="rating"
+    ).reset_index()
+    df_melted.columns = ["rater", "target", "rating"]
+    print(f"Melted dataframe for exercise {exercise_name}")
+    print(df_melted)
+
+    # Compute the ICC
+    icc_results = pg.intraclass_corr(
+        data=df_melted, targets="target", raters="rater", ratings="rating"
+    ).round(3)
+    print(f"\nICC results for exercise {exercise_name}:")
+    print(icc_results)
+
+    # Extract ICC2 value from the results
+    icc2_value = icc_results.loc[icc_results["Type"] == "ICC2", "ICC"].values[0]
+    return icc2_value
+
+
 def plot_muscle_activation_per_exercise_different_reps(
     overall_activations_by_exercise,
     channel_names,
@@ -156,14 +203,18 @@ def plot_muscle_activation_per_exercise_different_reps(
         activations_by_directory, exercise_name
     )
 
+    ## Compute and display the ICC for the current exercise
+    icc2_value = compute_icc_for_exercise(activations_by_directory, exercise_name)
+    # Annotate Pearson coefficient and ICC2
     ax.annotate(
-        f"Pearson Coefficient: {pearson_coefficient:.2f}",
-        xy=(-0.10, 0.20),  # Adjust these values for desired padding
+        f"Pearson: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}",
+        xy=(1.10, -0.25),  # Adjust these values for desired padding
         xycoords="axes fraction",
         fontsize=12,
         fontweight="bold",
         verticalalignment="bottom",
         horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.75),
     )
 
     plt.tight_layout()
