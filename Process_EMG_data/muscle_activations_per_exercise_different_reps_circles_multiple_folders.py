@@ -71,7 +71,7 @@ def plot_muscle_activation_per_exercise_different_reps(
                 activations_for_rep + [activations_for_rep[0]],
                 marker="o",
                 color=colors_by_directory[color],
-                alpha=0.3,
+                alpha=0.55,
             )
 
         # Add legend entry for this directory
@@ -113,7 +113,7 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     # Display the Pearson coefficient, ICC, and cosine similarity in the plot
     ax.annotate(
-        f"Pearson: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}\nCosine Similarity: {cosine_similarity:.2f}",
+        f"Pearson Correlation: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}\nCosine Similarity: {cosine_similarity:.2f}",
         xy=(1.10, -0.15),  # Adjust these values for desired padding
         xycoords="axes fraction",
         fontsize=12,
@@ -201,8 +201,12 @@ if __name__ == "__main__":
     # and is a dictionary of dictionaries of lists of lists
     overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
 
+    use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
+
     for directory_path in directory_paths:
-        mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
+        mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
+            directory_path, use_automatic
+        )
         channel_names = get_channel_names(directory_path)
         filenames = get_mat_filenames(directory_path)
 
@@ -226,7 +230,10 @@ if __name__ == "__main__":
             overall_activations_by_exercise[exercise][directory_path] = activations
 
     # Create directory to save images where the script is run
-    save_directory = "figures_muscle_activation_per_exercise_circles_overall"
+    save_suffix = "_automatic" if use_automatic else "_fixed"
+    save_directory = (
+        f"figures_muscle_activation_per_exercise_circles_overall{save_suffix}"
+    )
     os.makedirs(save_directory, exist_ok=True)
 
     for exercise_name in overall_activations_by_exercise:
