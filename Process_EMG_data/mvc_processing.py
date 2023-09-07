@@ -49,7 +49,30 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
     return max_mean_value
 
 
-def calculate_mvc_for_each_channel(directory_path):
+import os
+import numpy as np
+
+# ... any other imports you might need ...
+
+
+def _calculate_mvc_for_each_channel_fixed(directory_path):
+    selected_file_paths = auto_select_files_for_channels(directory_path)
+    channel_names = get_channel_names(directory_path)
+
+    max_mvc_values = []
+
+    for i, channel_name in enumerate(channel_names):
+        filepath = os.path.join(directory_path, selected_file_paths[i])
+        mat = loadmat(filepath)
+        data = mat["data"]
+        channel_data = data[i, :]
+        mvc_value = process_mvc_data_for_channel(channel_data)
+        max_mvc_values.append(mvc_value)
+
+    return np.array(max_mvc_values), selected_file_paths
+
+
+def _calculate_mvc_for_each_channel_automatic(directory_path):
     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)
 
@@ -74,6 +97,13 @@ def calculate_mvc_for_each_channel(directory_path):
         )
 
     return np.array(max_mvc_values), mvc_exercise_names_for_channels
+
+
+def calculate_mvc_for_each_channel(directory_path, use_automatic=False):
+    if use_automatic:
+        return _calculate_mvc_for_each_channel_automatic(directory_path)
+    else:
+        return _calculate_mvc_for_each_channel_fixed(directory_path)
 
 
 def select_files_for_channels_gui(directory_path):
@@ -131,23 +161,6 @@ def auto_select_files_for_channels(directory_path):
             return []
 
     return selected_files
-
-
-# def calculate_mvc_for_each_channel(directory_path):
-#     selected_file_paths = auto_select_files_for_channels(directory_path)
-#     channel_names = get_channel_names(directory_path)
-
-#     max_mvc_values = []
-
-#     for i, channel_name in enumerate(channel_names):
-#         filepath = os.path.join(directory_path, selected_file_paths[i])
-#         mat = loadmat(filepath)
-#         data = mat["data"]
-#         channel_data = data[i, :]
-#         mvc_value = process_mvc_data_for_channel(channel_data)
-#         max_mvc_values.append(mvc_value)
-
-#     return np.array(max_mvc_values), selected_file_paths
 
 
 def plot_mvc_mapping_table(
