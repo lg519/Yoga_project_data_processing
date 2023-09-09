@@ -49,12 +49,6 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
     return max_mean_value
 
 
-import os
-import numpy as np
-
-# ... any other imports you might need ...
-
-
 def _calculate_mvc_for_each_channel_fixed(directory_path):
     selected_file_paths = auto_select_files_for_channels(directory_path)
     channel_names = get_channel_names(directory_path)
