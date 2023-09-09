@@ -73,49 +73,110 @@ if __name__ == "__main__":
         filenames, range(64), mvc_values  # Assuming 64 channels in total
     )
 
-    save_directory = os.path.join(directory_path, "figures_muscle_activation_heatmap")
-    os.makedirs(save_directory, exist_ok=True)
-
-    active_channels = [
-        1,
-        3,
-        5,
-        7,
-        12,
-        14,
-        17,
-        19,
-        21,
-        23,
-        26,
-        33,
-        35,
-        37,
-        39,
-        44,
-        46,
-        49,
-        51,
-        53,
-        55,
-        60,
+    grids = [
+        (
+            1,
+            [
+                1,
+                3,
+                5,
+                7,
+                12,
+                14,
+                17,
+                19,
+                21,
+                23,
+                26,
+                33,
+                35,
+                37,
+                39,
+                44,
+                46,
+                49,
+                51,
+                53,
+                55,
+                60,
+            ],
+        ),
+        (
+            2,
+            [
+                1,
+                3,
+                5,
+                7,
+                12,
+                14,
+                17,
+                19,
+                21,
+                23,
+                33,
+                35,
+                37,
+                39,
+                44,
+                46,
+                49,
+                51,
+                53,
+                55,
+                60,
+            ],
+        ),
+        (
+            3,
+            [
+                1,
+                3,
+                5,
+                7,
+                12,
+                14,
+                17,
+                19,
+                21,
+                23,
+                33,
+                35,
+                37,
+                39,
+                44,
+                46,
+                49,
+                51,
+                53,
+                55,
+                60,
+            ],
+        ),
     ]
 
-    for exercise_name, activations in activations_per_exercise.items():
-        for rep_index, _ in enumerate(activations[0]):
-            rep_activations = [
-                np.mean(activations[channel][rep_index])
-                if len(activations[channel]) > rep_index
-                else 0
-                for channel in active_channels
-            ]
-            heatmap_save_path = os.path.join(
-                save_directory,
-                f"{participant_type} - {exercise_name} - Rep {rep_index + 1} - Heatmap.png",
-            )
-            plot_heatmap(
-                rep_activations,
-                active_channels,
-                f"{participant_type} - {exercise_name} - Rep {rep_index + 1}",
-                heatmap_save_path,
-            )
+    save_directory = os.path.join(directory_path, "figures_heatmaps")
+    os.makedirs(save_directory, exist_ok=True)
+
+    for exercise_name, all_activations in activations_per_exercise.items():
+        for grid_num, active_channels in grids:
+            for rep_index, _ in enumerate(all_activations[0]):
+                activations_start_idx = sum(
+                    [len(grid[1]) for grid in grids[: grid_num - 1]]
+                )
+                activations_end_idx = activations_start_idx + len(active_channels)
+                rep_activations = [
+                    np.mean(all_activations[i][rep_index])
+                    for i in range(activations_start_idx, activations_end_idx)
+                ]
+
+                heatmap_save_path = os.path.join(
+                    save_directory,
+                    f"{participant_type} - Grid {grid_num} - {exercise_name} - Rep {rep_index + 1} - Heatmap.png",
+                )
+                plot_heatmap(
+                    rep_activations,
+                    active_channels,
+                    f"{participant_type} - Grid {grid_num} - {exercise_name} - Rep {rep_index + 1}",
+                    heatmap_save_path,
+                )
