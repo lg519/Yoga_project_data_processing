@@ -39,6 +39,8 @@ def plot_heatmap(activations, active_channels, title, save_path):
 
 from matplotlib.transforms import Affine2D
 
+from matplotlib.cm import get_cmap
+
 
 def plot_combined_heatmap_on_bg(
     activations_list,
@@ -48,18 +50,22 @@ def plot_combined_heatmap_on_bg(
     background_path,
     positions,
     scales,
+    rotations,
 ):
     fig, ax = plt.subplots(figsize=(15, 5))
     bg_img = plt.imread(background_path)
     ax.imshow(bg_img, aspect="equal", extent=[0, bg_img.shape[1], 0, bg_img.shape[0]])
 
-    # Define colors for arrows
-    arrow_colors = ["red", "green", "blue"]  # These can be changed as needed
+    # Define a colormap to pick colors for arrows
+    colormap = get_cmap(
+        "tab10"
+    )  # Using 'tab10' which has 10 distinguishable colors, but you can choose any other
+    arrow_colors = [colormap(i) for i in range(len(activations_list))]
 
     arrow_artists = []  # This list will be used to create the legend
 
-    for idx, (activations, active_channels, pos, scale) in enumerate(
-        zip(activations_list, active_channels_list, positions, scales)
+    for idx, (activations, active_channels, pos, scale, rotation) in enumerate(
+        zip(activations_list, active_channels_list, positions, scales, rotations)
     ):
         grid = np.zeros((8, 8))
         for i, ch in enumerate(active_channels):
@@ -75,7 +81,7 @@ def plot_combined_heatmap_on_bg(
         rot_trans = (
             Affine2D()
             .translate(-pos[0], -pos[1])
-            .rotate_deg(45)
+            .rotate_deg(rotation)
             .translate(pos[0], pos[1])
         )
         ax.imshow(
@@ -97,8 +103,8 @@ def plot_combined_heatmap_on_bg(
         arrow_artist = ax.arrow(
             arrow_x,
             arrow_y,
-            10 * np.cos(np.pi / 4),
-            10 * np.sin(np.pi / 4),
+            10 * np.cos(np.radians(rotation)),
+            10 * np.sin(np.radians(rotation)),
             head_width=5,
             head_length=10,
             fc=arrow_colors[idx],
@@ -259,6 +265,7 @@ if __name__ == "__main__":
             positions = [(100, 200), (300, 200), (500, 200)]  # adjust these as required
             background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
             scales = [4, 4, 4]  # adjust these scales as required
+            rotations = [0, 45, 90]
 
             plot_combined_heatmap_on_bg(
                 combined_activations,
@@ -268,4 +275,5 @@ if __name__ == "__main__":
                 background_path,
                 positions,
                 scales,
+                rotations,
             )
