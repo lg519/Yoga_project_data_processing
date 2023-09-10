@@ -37,6 +37,9 @@ def plot_heatmap(activations, active_channels, title, save_path):
     plt.close()
 
 
+from matplotlib.transforms import Affine2D
+
+
 def plot_combined_heatmap_on_bg(
     activations_list,
     active_channels_list,
@@ -50,6 +53,11 @@ def plot_combined_heatmap_on_bg(
     bg_img = plt.imread(background_path)
     ax.imshow(bg_img, aspect="equal", extent=[0, bg_img.shape[1], 0, bg_img.shape[0]])
 
+    # Define colors for arrows
+    arrow_colors = ["red", "green", "blue"]  # These can be changed as needed
+
+    arrow_artists = []  # This list will be used to create the legend
+
     for idx, (activations, active_channels, pos, scale) in enumerate(
         zip(activations_list, active_channels_list, positions, scales)
     ):
@@ -62,41 +70,47 @@ def plot_combined_heatmap_on_bg(
         # Convert grid to RGB image using viridis colormap
         grid_colored = plt.cm.viridis(grid / np.max(grid))
         grid_rgb = (grid_colored[:, :, :3] * 255).astype(np.uint8)
-        im = Image.fromarray(grid_rgb)
-        grid_img = OffsetImage(im, zoom=scale)
-        ab = AnnotationBbox(
-            grid_img, (pos[0], pos[1]), frameon=False, boxcoords="data", pad=0.0
-        )
-        ax.add_artist(ab)
 
-        # Add orientation arrow to the right side of the grid
-        arrow_x = pos[0] + im.size[0] * scale  # Exactly on the right border
-        arrow_y = pos[1] + im.size[1] * scale / 2 - 5  # Centered vertically
-        ax.arrow(
+        # Create Affine transformation for grid
+        rot_trans = (
+            Affine2D()
+            .translate(-pos[0], -pos[1])
+            .rotate_deg(45)
+            .translate(pos[0], pos[1])
+        )
+        ax.imshow(
+            grid_rgb,
+            extent=[
+                pos[0],
+                pos[0] + grid_rgb.shape[1] * scale,
+                pos[1],
+                pos[1] + grid_rgb.shape[0] * scale,
+            ],
+            transform=rot_trans + ax.transData,
+            interpolation="nearest",
+        )
+
+        # Adjust arrow position based on rotation
+        arrow_x = pos[0] + grid_rgb.shape[1] * scale  # Exactly on the right border
+        arrow_y = pos[1] + grid_rgb.shape[0] * scale / 2  # Centered vertically
+        arrow_x, arrow_y = rot_trans.transform_point([arrow_x, arrow_y])
+        arrow_artist = ax.arrow(
             arrow_x,
             arrow_y,
-            10,
-            0,
+            10 * np.cos(np.pi / 4),
+            10 * np.sin(np.pi / 4),
             head_width=5,
             head_length=10,
-            fc="black",
-            ec="black",
+            fc=arrow_colors[idx],
+            ec=arrow_colors[idx],
+            label=f"Grid {idx + 1}",  # We add label to arrow for the legend
         )
-
-        # Plotting grid number on top of the grid
-        grid_title = f"Grid {idx + 1}"
-        ax.text(
-            pos[0] + im.size[0] * scale / 2,
-            pos[1] + im.size[1] * scale / 2 + 20,
-            grid_title,
-            ha="center",
-            va="center",
-            color="black",
-            fontsize=10,
-            weight="bold",
-        )
+        arrow_artists.append(arrow_artist)
 
     ax.set_title(title, fontsize=10, y=1.15)
+    ax.legend(
+        handles=arrow_artists, loc="upper right"
+    )  # Displaying legend using arrow artists
     ax.axis("off")
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
@@ -244,7 +258,7 @@ if __name__ == "__main__":
             )
             positions = [(100, 200), (300, 200), (500, 200)]  # adjust these as required
             background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
-            scales = [2.5, 2.5, 2.5]  # adjust these scales as required
+            scales = [4, 4, 4]  # adjust these scales as required
 
             plot_combined_heatmap_on_bg(
                 combined_activations,
