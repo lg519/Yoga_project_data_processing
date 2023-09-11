@@ -46,7 +46,7 @@ def plot_combined_heatmap(activations_list, active_channels_list, title, save_pa
             row = (ch - 1) // 8
             col = (ch - 1) % 8
             grid[row][col] = activations[i]
-        ax.imshow(grid, cmap="viridis", interpolation="nearest")
+        im = ax.imshow(grid, cmap="viridis", interpolation="nearest")
         for i, ch in enumerate(active_channels):
             row = (ch - 1) // 8
             col = (ch - 1) % 8
@@ -58,10 +58,12 @@ def plot_combined_heatmap(activations_list, active_channels_list, title, save_pa
                 va="center",
                 color="white" if activations[i] < 0.5 else "black",
             )
+        fig.colorbar(
+            im, ax=ax, label="Muscle Activation"
+        )  # Individual colorbar for each subplot
         ax.set_title(f"Grid {idx + 1}")  # Updated line
         ax.axis("off")
 
-    plt.colorbar(ax.images[0], ax=axes, label="Muscle Activation", location="right")
     plt.suptitle(title)
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.close()

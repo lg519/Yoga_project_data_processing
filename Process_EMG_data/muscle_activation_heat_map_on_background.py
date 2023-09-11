@@ -105,8 +105,8 @@ def plot_combined_heatmap_on_bg(
             arrow_y,
             10 * np.cos(np.radians(rotation)),
             10 * np.sin(np.radians(rotation)),
-            head_width=5,
-            head_length=10,
+            head_width=50,
+            head_length=100,
             fc=arrow_colors[idx],
             ec=arrow_colors[idx],
             label=f"Grid {idx + 1}",  # We add label to arrow for the legend
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         ),
     ]
 
-    save_directory = os.path.join(directory_path, "figures_heatmaps")
+    save_directory = os.path.join(directory_path, "figures_heatmaps_on_background")
     os.makedirs(save_directory, exist_ok=True)
 
     for exercise_name, all_activations in activations_per_exercise.items():
@@ -260,12 +260,16 @@ if __name__ == "__main__":
             ]
             heatmap_save_path = os.path.join(
                 save_directory,
-                f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1} - Heatmap.png",
+                f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1} - Heatmap_on_background.png",
             )
-            positions = [(100, 200), (300, 200), (500, 200)]  # adjust these as required
-            background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
-            scales = [4, 4, 4]  # adjust these scales as required
-            rotations = [0, 45, 90]
+            positions = [
+                (1300, 2400),
+                (1350, 1400),
+                (1040, 1680),
+            ]  # adjust these as required
+            background_path = "Process_EMG_data/images/YT1_back.jpg"
+            scales = [60, 60, 60]  # adjust these scales as required
+            rotations = [70, -10, 100]
 
             plot_combined_heatmap_on_bg(
                 combined_activations,
