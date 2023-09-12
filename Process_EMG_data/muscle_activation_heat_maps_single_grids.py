@@ -153,9 +153,7 @@ if __name__ == "__main__":
         ),
     ]
 
-    save_directory = os.path.join(
-        directory_path, "figures_muscle_activation_per_exercise_cartesian"
-    )
+    save_directory = os.path.join(directory_path, "figures_heatmaps_single_grids")
     os.makedirs(save_directory, exist_ok=True)
 
     for exercise_name, all_activations in activations_per_exercise.items():

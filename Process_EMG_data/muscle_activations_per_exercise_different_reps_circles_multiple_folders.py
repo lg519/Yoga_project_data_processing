@@ -202,7 +202,7 @@ if __name__ == "__main__":
         # and is a dictionary of dictionaries of lists of lists
         overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
 
-        use_automatic = True  # Set to False to use the "fixed" version. You can change this based on your preference.
+        use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
 
         for directory_path in directory_paths:
             mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
