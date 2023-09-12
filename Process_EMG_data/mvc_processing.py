@@ -93,7 +93,7 @@ def _calculate_mvc_for_each_channel_automatic(directory_path):
     return np.array(max_mvc_values), mvc_exercise_names_for_channels
 
 
-use_automatic = True  # Set to False to use the "fixed" version. You can change this based on your preference.
+use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
 
 
 def calculate_mvc_for_each_channel(directory_path, use_automatic=False):
