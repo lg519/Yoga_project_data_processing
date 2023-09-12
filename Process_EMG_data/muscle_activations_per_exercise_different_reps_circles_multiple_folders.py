@@ -20,6 +20,8 @@ from similarity_metrics import (
     average_cosine_similarity_over_directories,
 )
 
+import plotly.graph_objects as go
+
 
 def select_multiple_directories(title="Select Directories"):
     all_directories = []
@@ -47,6 +49,11 @@ def generate_colors(n):
     return [colormap(i) for i in np.linspace(0, 1, n)]
 
 
+# Convert tuple color to rgba string
+def tuple_to_rgba(color_tuple):
+    return f"rgba({int(color_tuple[0]*255)}, {int(color_tuple[1]*255)}, {int(color_tuple[2]*255)}, {color_tuple[3]})"
+
+
 def plot_muscle_activation_per_exercise_different_reps(
     overall_activations_by_exercise,
     channel_names,
@@ -55,15 +62,10 @@ def plot_muscle_activation_per_exercise_different_reps(
     save_directory,
     colors_by_directory,
 ):
-    plt.figure(figsize=(8, 8))
-    ax = plt.subplot(111, projection="polar")
-
-    theta = np.linspace(0.0, 2 * np.pi, len(channel_names), endpoint=False)
-
-    legend_handles = []  # to store legend handles
-
     # Activations for the given exercise
     activations_by_directory = overall_activations_by_exercise[exercise_name]
+
+    fig = go.Figure()
 
     # Loop over all directories (i.e., color groups)
     for color, reps_by_color in activations_by_directory.items():
@@ -77,37 +79,23 @@ def plot_muscle_activation_per_exercise_different_reps(
                 for channel in range(len(channel_names))
             ]
 
-            (line,) = ax.plot(
-                np.concatenate([theta, [theta[0]]]),
-                activations_for_rep + [activations_for_rep[0]],
-                marker="o",
-                color=colors_by_directory[color],
-                alpha=0.55,
+            trace_name = (
+                os.path.basename(color).split("_")[0] if rep_index == 0 else None
             )
 
-        # Add legend entry for this directory
-        legend_handles.append(line)
-
-    font_properties = {"fontsize": 12, "fontweight": "bold"}
-    channel_names = [
-        name.replace(" (", "\n(") if "(" in name else name for name in channel_names
-    ]
-
-    ax.set_xticks(theta)
-    ax.set_xticklabels(channel_names, **font_properties)
-    ax.set_title(
-        f"{participant_type} - {exercise_name}", va="bottom", **font_properties
-    )
-
-    # Use just the first part (before the first underscore) of the directory for legend labels
-    directory_labels = [
-        os.path.basename(directory).split("_")[0]
-        for directory in activations_by_directory.keys()
-    ]
-
-    ax.legend(
-        legend_handles, directory_labels, loc="upper right", bbox_to_anchor=(1.50, 1.0)
-    )
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=activations_for_rep + [activations_for_rep[0]],
+                    theta=channel_names + [channel_names[0]],
+                    name=trace_name,
+                    marker=dict(color=tuple_to_rgba(colors_by_directory[color])),
+                    line=dict(color=tuple_to_rgba(colors_by_directory[color])),
+                    opacity=0.55,
+                    showlegend=(
+                        rep_index == 0
+                    ),  # Only show in the legend for the first rep
+                )
+            )
 
     # Compute the Pearson coefficient for the current exercise
     pearson_coefficient = average_pearson_coefficient_over_directories(
@@ -122,24 +110,33 @@ def plot_muscle_activation_per_exercise_different_reps(
         activations_by_directory, exercise_name
     )
 
-    # Display the Pearson coefficient, ICC, and cosine similarity in the plot
-    ax.annotate(
-        f"Pearson Correlation: {pearson_coefficient:.2f}\nICC2: {icc2_value:.2f}\nCosine Similarity: {cosine_similarity:.2f}",
-        xy=(1.10, -0.15),  # Adjust these values for desired padding
-        xycoords="axes fraction",
-        fontsize=12,
-        fontweight="bold",
-        verticalalignment="bottom",
-        horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.5),
+    annotations = [
+        dict(
+            text=f"<b>Pearson Correlation: {pearson_coefficient:.2f}<br>ICC2: {icc2_value:.2f}<br>Cosine Similarity: {cosine_similarity:.2f}</b>",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            x=1.00,
+            y=0.05,
+        )
+    ]
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+            )
+        ),
+        showlegend=True,
+        title=f"{participant_type} - {exercise_name}",
+        annotations=annotations,
     )
 
-    plt.tight_layout()
+    # Save the figure
     plot_filename = os.path.join(
-        save_directory, f"{participant_type} - {exercise_name}.png"
+        save_directory, f"{participant_type} - {exercise_name}.html"
     )
-    plt.savefig(plot_filename)
-    plt.close()
+    fig.write_html(plot_filename)
 
 
 def get_rep_number(filename):
