@@ -275,13 +275,13 @@ if __name__ == "__main__":
 
             # YT1_testing_6_MAT config
             positions = [
-                (790, 690),
-                (260, 660),
-                (260, 600),
+                (840, 750),
+                (215, 660),
+                (215, 600),
             ]  # adjust these as required
             background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
             scales = [5.8, 5.8, 5.8]  # adjust these scales as required
-            rotations = [0, 0, 0]
+            rotations = [180, 0, 0]
 
             plot_combined_heatmap_on_bg(
                 combined_activations,
