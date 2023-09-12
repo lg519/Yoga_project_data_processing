@@ -5,7 +5,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mvc_processing import calculate_mvc_for_each_channel, plot_mvc_mapping_table
+from mvc_processing import (
+    calculate_mvc_for_each_channel,
+    plot_mvc_mapping_table,
+    use_automatic,
+)
 from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
@@ -106,7 +110,9 @@ if __name__ == "__main__":
         title="Select directory with exercise data"
     )
 
-    mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(directory_path)
+    mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
+        directory_path, use_automatic
+    )
     channel_names = get_channel_names(directory_path)
 
     filenames = get_mat_filenames(directory_path)
@@ -129,8 +135,9 @@ if __name__ == "__main__":
         ]
 
     # After selecting the directory_path and before plotting:
+    save_suffix = "_automatic" if use_automatic else "_fixed"
     save_directory = os.path.join(
-        directory_path, "figures_muscle_activation_per_exercise_cartesian"
+        directory_path, f"figures_muscle_activation_per_exercise_cartesian{save_suffix}"
     )
     os.makedirs(save_directory, exist_ok=True)
 

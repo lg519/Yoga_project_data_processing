@@ -5,7 +5,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mvc_processing import calculate_mvc_for_each_channel, plot_mvc_mapping_table
+from mvc_processing import (
+    calculate_mvc_for_each_channel,
+    plot_mvc_mapping_table,
+    use_automatic,
+)
 from apply_processing_pipeline import normalize_signal
 from amplifier_config import sampling_frequency, get_channel_names
 from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
@@ -201,8 +205,6 @@ if __name__ == "__main__":
         # overall_activations_per_exercise[exercise_name][directory_path][channel_index][rep_index]
         # and is a dictionary of dictionaries of lists of lists
         overall_activations_by_exercise = defaultdict(lambda: defaultdict(list))
-
-        use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
 
         for directory_path in directory_paths:
             mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
