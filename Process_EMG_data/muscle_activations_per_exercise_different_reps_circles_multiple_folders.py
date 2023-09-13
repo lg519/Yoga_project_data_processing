@@ -230,8 +230,10 @@ if __name__ == "__main__":
                 overall_activations_by_exercise[exercise][directory_path] = activations
 
         save_suffix = "_automatic" if use_automatic else "_fixed"
-        main_directory = (
-            f"figures_muscle_activation_per_exercise_circles_overall{save_suffix}"
+        visualization_root_directory = "Visualized_EMG_data"
+        main_directory = os.path.join(
+            visualization_root_directory,
+            f"figures_muscle_activation_per_exercise_circles_overall{save_suffix}",
         )
         save_directory = os.path.join(main_directory, participant_type)
         os.makedirs(save_directory, exist_ok=True)

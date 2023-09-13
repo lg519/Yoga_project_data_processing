@@ -121,50 +121,73 @@ if __name__ == "__main__":
     root = Tk()
     root.withdraw()
 
-    directory_path = filedialog.askdirectory(
-        title="Select directory with exercise data"
+    parent_directory_path = filedialog.askdirectory(title="Select parent directory")
+
+    # List all directories in the selected parent directory
+    all_directories = [
+        d
+        for d in os.listdir(parent_directory_path)
+        if os.path.isdir(os.path.join(parent_directory_path, d))
+    ]
+
+    # Filter to only include directories ending with '_MAT'
+    mat_directories = [d for d in all_directories if d.endswith("_MAT")]
+
+    # Main save directory
+    parent_basename = os.path.basename(parent_directory_path)
+    main_save_directory = os.path.join(
+        os.getcwd(), "Visualized_EMG_data", parent_basename
     )
+    os.makedirs(main_save_directory, exist_ok=True)
 
-    mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
-        directory_path, use_automatic
-    )
-    channel_names = get_channel_names(directory_path)
+    for directory in mat_directories:
+        directory_path = os.path.join(parent_directory_path, directory)
 
-    filenames = get_mat_filenames(directory_path)
-    participant_type = get_partecipant_type(filenames[0])
+        mvc_values, max_mvc_filenames = calculate_mvc_for_each_channel(
+            directory_path, use_automatic
+        )
+        channel_names = get_channel_names(directory_path)
 
-    activations_per_exercise = compute_exercise_activations(
-        filenames, range(len(channel_names)), mvc_values
-    )
+        filenames = get_mat_filenames(directory_path)
+        participant_type = get_partecipant_type(filenames[0])
 
-    # Sort channel names and reorder related data right before plotting
-    sorted_indices = np.argsort(channel_names)
-    channel_names = [channel_names[i] for i in sorted_indices]
-    mvc_values = [mvc_values[i] for i in sorted_indices]
-    max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
+        activations_per_exercise = compute_exercise_activations(
+            filenames, range(len(channel_names)), mvc_values
+        )
 
-    # Sort activations for each exercise according to the sorted channel names
-    for exercise_name, activations in activations_per_exercise.items():
-        activations_per_exercise[exercise_name] = [
-            activations[i] for i in sorted_indices
-        ]
+        # Sort channel names and reorder related data right before plotting
+        sorted_indices = np.argsort(channel_names)
+        channel_names = [channel_names[i] for i in sorted_indices]
+        mvc_values = [mvc_values[i] for i in sorted_indices]
+        max_mvc_filenames = [max_mvc_filenames[i] for i in sorted_indices]
 
-    # After selecting the directory_path and before plotting:
-    save_suffix = "_automatic" if use_automatic else "_fixed"
-    save_directory = os.path.join(
-        directory_path, f"figures_muscle_activation_per_exercise_circles{save_suffix}"
-    )
-    os.makedirs(save_directory, exist_ok=True)
+        # Define the save directory for the current MAT directory
+        current_save_directory = os.path.join(
+            main_save_directory, os.path.basename(directory_path)
+        )
+        os.makedirs(current_save_directory, exist_ok=True)
 
-    plot_mvc_mapping_table(
-        channel_names, max_mvc_filenames, mvc_values, participant_type, save_directory
-    )
+        # After selecting the directory_path and before plotting:
+        save_suffix = "_automatic" if use_automatic else "_fixed"
+        save_directory = os.path.join(
+            current_save_directory,
+            f"figures_muscle_activation_per_exercise_circles{save_suffix}",
+        )
+        os.makedirs(save_directory, exist_ok=True)
 
-    for exercise_name, activations in activations_per_exercise.items():
-        plot_muscle_activation_per_exercise_different_reps(
-            activations,
+        plot_mvc_mapping_table(
             channel_names,
-            exercise_name,
+            max_mvc_filenames,
+            mvc_values,
             participant_type,
             save_directory,
         )
+
+        for exercise_name, activations in activations_per_exercise.items():
+            plot_muscle_activation_per_exercise_different_reps(
+                activations,
+                channel_names,
+                exercise_name,
+                participant_type,
+                save_directory,
+            )
