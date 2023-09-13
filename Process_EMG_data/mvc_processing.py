@@ -132,14 +132,14 @@ def auto_select_files_for_channels(directory_path):
     """Automatically select files for each channel based on pose names."""
 
     pose_names = [
-        "Dolphin",
-        "chaturanga",
-        "Crow",
-        "Locust",
-        "Dolphin",
-        "Parivrita_Parsvakonasana_left",
-        "Uttitahasta_Padangustasana_b_right",
-        "Childs_pose",
+        "tadasana",
+        "tadasana",
+        "tadasana",
+        "tadasana",
+        "tadasana",
+        "tadasana",
+        "tadasana",
+        "tadasana",
     ]
 
     all_files = [f for f in os.listdir(directory_path) if f.endswith(".mat")]
