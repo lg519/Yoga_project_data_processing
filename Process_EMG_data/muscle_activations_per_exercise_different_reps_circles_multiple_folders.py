@@ -21,6 +21,7 @@ from similarity_metrics import (
 )
 
 import plotly.graph_objects as go
+import pandas as pd
 
 
 def select_multiple_directories(title="Select Directories"):
@@ -178,6 +179,67 @@ def compute_exercise_activations(filenames, channel_indices, mvc_values):
     return activations_per_exercise
 
 
+def save_activations_to_excel(
+    overall_activations_by_exercise, channel_names, save_directory
+):
+    # Creating an empty DataFrame to store the final result
+    result_df = pd.DataFrame()
+
+    for (
+        exercise_name,
+        activations_by_directory,
+    ) in overall_activations_by_exercise.items():
+        exercise_data = []
+
+        for directory, channels in activations_by_directory.items():
+            participant_code = os.path.basename(directory).split("_")[0]
+
+            for channel_idx, reps in enumerate(channels):
+                muscle_name = channel_names[channel_idx]
+                mean_values = []  # To store the mean values of each rep
+
+                for rep_idx, value in enumerate(reps):
+                    mean_val = (
+                        value.mean() if len(value) > 0 else 0
+                    )  # Mean value of current rep
+                    mean_values.append(mean_val)
+                    exercise_data.append(
+                        {
+                            "Participant": participant_code,
+                            "Muscle Name": muscle_name,
+                            "Rep Number": rep_idx + 1,
+                            exercise_name: mean_val,
+                        }
+                    )
+
+                # Compute the overall mean across the reps
+                overall_mean = sum(mean_values) / len(mean_values) if mean_values else 0
+                exercise_data.append(
+                    {
+                        "Participant": participant_code,
+                        "Muscle Name": muscle_name,
+                        "Rep Number": "Mean of Reps",
+                        exercise_name: overall_mean,
+                    }
+                )
+
+        # Convert the current exercise data to a dataframe and merge with the result
+        current_df = pd.DataFrame(exercise_data)
+        if result_df.empty:
+            result_df = current_df
+        else:
+            result_df = pd.merge(
+                result_df,
+                current_df,
+                on=["Participant", "Muscle Name", "Rep Number"],
+                how="outer",
+            )
+
+    # Save to Excel
+    output_path = os.path.join(save_directory, "AllExercises.xlsx")
+    result_df.to_excel(output_path, index=False, engine="openpyxl")
+
+
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()
@@ -249,3 +311,8 @@ if __name__ == "__main__":
                 save_directory,
                 colors_by_directory,
             )
+
+        # Saving activations to Excel
+        save_activations_to_excel(
+            overall_activations_by_exercise, channel_names, save_directory
+        )
