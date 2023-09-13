@@ -1,4 +1,8 @@
-from filtering import butter_bandpass_filter, butter_lowpass_filter
+from filtering import (
+    butter_bandpass_filter,
+    butter_lowpass_filter,
+    notch_mains_interference,
+)
 from rectify_signal import rectify_signal
 import numpy as np
 from amplifier_config import highcut, lowcut
@@ -11,6 +15,10 @@ def extract_envelope(data, sampling_frequency):
     # Apply the bandpass filter
     filtered_data = np.zeros_like(data, dtype=float)
     filtered_data = butter_bandpass_filter(data, lowcut, highcut, sampling_frequency)
+    # Apply the notch filter
+    filtered_data = notch_mains_interference(
+        filtered_data, mains_freq=50, sampling_frequency=sampling_frequency
+    )
 
     # Rectify the filtered signal and extract the envelope
     envelope = np.zeros_like(filtered_data, dtype=float)
