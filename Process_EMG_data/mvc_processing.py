@@ -131,6 +131,17 @@ def select_files_for_channels_gui(directory_path):
 def auto_select_files_for_channels(directory_path):
     """Automatically select files for each channel based on pose names."""
 
+    # pose_names = [
+    #     "Dolphin",
+    #     "chaturanga",
+    #     "Crow",
+    #     "Locust",
+    #     "Dolphin",
+    #     "Parivrita_Parsvakonasana_left",
+    #     "Uttitahasta_Padangustasana_b_right",
+    #     "Childs_pose",
+    # ]
+
     pose_names = [
         "tadasana",
         "tadasana",
