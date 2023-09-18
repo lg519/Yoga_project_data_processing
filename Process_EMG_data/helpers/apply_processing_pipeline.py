@@ -10,6 +10,16 @@ from Process_EMG_data.helpers.utilis import trim_data
 
 
 def extract_envelope(data, sampling_frequency):
+    """
+    Extract the envelope of the EMG signal.
+
+    Args:
+        data (np.array): The raw EMG data.
+        sampling_frequency (int): The sampling frequency of the signal.
+
+    Returns:
+        envelope (np.array): The envelope of the EMG signal.
+    """
     # Trim the data
     data = trim_data(data, sampling_frequency)
     # Apply the bandpass filter

@@ -1,5 +1,3 @@
-from scipy.signal import butter, lfilter
-import matplotlib.pyplot as plt
 import numpy as np
 
 
