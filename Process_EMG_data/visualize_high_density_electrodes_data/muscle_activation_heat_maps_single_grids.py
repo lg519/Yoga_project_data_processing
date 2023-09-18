@@ -5,9 +5,13 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from apply_processing_pipeline import normalize_signal
-from amplifier_config import sampling_frequency
-from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
+from Process_EMG_data.helpers.apply_processing_pipeline import normalize_signal
+from Process_EMG_data.helpers.amplifier_config import sampling_frequency
+from Process_EMG_data.helpers.utilis import (
+    get_mat_filenames,
+    get_partecipant_type,
+    get_exercise_name,
+)
 
 
 def plot_heatmap(activations, active_channels, title, save_path):

@@ -1,15 +1,23 @@
 from tkinter import Tk
-from filtering import butter_bandpass_filter, butter_lowpass_filter
+from Process_EMG_data.helpers.filtering import (
+    butter_bandpass_filter,
+    butter_lowpass_filter,
+)
 import numpy as np
 from scipy.io import loadmat
 from tkinter import filedialog
-from rectify_signal import rectify_signal
-from amplifier_config import sampling_frequency, lowcut, highcut, get_channel_names
+from Process_EMG_data.helpers.rectify_signal import rectify_signal
+from Process_EMG_data.helpers.amplifier_config import (
+    sampling_frequency,
+    lowcut,
+    highcut,
+    get_channel_names,
+)
 import matplotlib.pyplot as plt
 import fnmatch
 import os
-from utilis import get_exercise_name
-from apply_processing_pipeline import extract_envelope
+from Process_EMG_data.helpers.utilis import get_exercise_name
+from Process_EMG_data.helpers.apply_processing_pipeline import extract_envelope
 import tkinter as tk
 
 

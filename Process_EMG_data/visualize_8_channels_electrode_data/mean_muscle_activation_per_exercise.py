@@ -5,10 +5,17 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mvc_processing import calculate_mvc_for_each_channel
-from apply_processing_pipeline import normalize_signal
-from amplifier_config import sampling_frequency, get_channel_names
-from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
+from Process_EMG_data.helpers.mvc_processing import calculate_mvc_for_each_channel
+from Process_EMG_data.helpers.apply_processing_pipeline import normalize_signal
+from Process_EMG_data.helpers.amplifier_config import (
+    sampling_frequency,
+    get_channel_names,
+)
+from Process_EMG_data.helpers.utilis import (
+    get_mat_filenames,
+    get_partecipant_type,
+    get_exercise_name,
+)
 
 
 def plot_mean_muscle_activation_per_exercise(

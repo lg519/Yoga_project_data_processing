@@ -6,13 +6,21 @@ from tkinter import Tk
 import os
 import re
 import glob
-from filtering import (
+import sys
+
+print(sys.path)
+
+from Process_EMG_data.helpers.filtering import (
     butter_bandpass_filter,
     notch_mains_interference,
 )
-from rectify_signal import rectify_signal
-from amplifier_config import highcut, lowcut, sampling_frequency
-from apply_processing_pipeline import extract_envelope
+from Process_EMG_data.helpers.rectify_signal import rectify_signal
+from Process_EMG_data.helpers.amplifier_config import (
+    highcut,
+    lowcut,
+    sampling_frequency,
+)
+from Process_EMG_data.helpers.apply_processing_pipeline import extract_envelope
 import gc  # import garbage collector
 
 

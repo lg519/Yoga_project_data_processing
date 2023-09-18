@@ -1,12 +1,12 @@
-from filtering import (
+from Process_EMG_data.helpers.filtering import (
     butter_bandpass_filter,
     butter_lowpass_filter,
     notch_mains_interference,
 )
-from rectify_signal import rectify_signal
+from Process_EMG_data.helpers.rectify_signal import rectify_signal
 import numpy as np
-from amplifier_config import highcut, lowcut
-from utilis import trim_data
+from Process_EMG_data.helpers.amplifier_config import highcut, lowcut
+from Process_EMG_data.helpers.utilis import trim_data
 
 
 def extract_envelope(data, sampling_frequency):

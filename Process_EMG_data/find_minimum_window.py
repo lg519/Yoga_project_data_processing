@@ -5,17 +5,20 @@ import os
 import numpy as np
 import pandas as pd
 
-from mvc_processing import calculate_mvc_for_each_channel
-from apply_processing_pipeline import normalize_signal
-from amplifier_config import sampling_frequency
-from utilis import (
+from Process_EMG_data.helpers.mvc_processing import calculate_mvc_for_each_channel
+from Process_EMG_data.helpers.apply_processing_pipeline import normalize_signal
+from Process_EMG_data.helpers.amplifier_config import sampling_frequency
+from Process_EMG_data.helpers.utilis import (
     get_mat_filenames,
     get_partecipant_type,
     get_exercise_name,
 )
 
 from matplotlib import pyplot as plt
-from amplifier_config import sampling_frequency, get_channel_names
+from Process_EMG_data.helpers.amplifier_config import (
+    sampling_frequency,
+    get_channel_names,
+)
 
 
 def std_of_sliding_window(data, window_size):

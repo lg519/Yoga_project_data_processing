@@ -1,7 +1,5 @@
 EMG_Data/
 __pycache__/
 Process_EMG_data/__pycache__
-figures_muscle_activation_per_exercise_circles_overall_automatic
-figures_muscle_activation_per_exercise_circles_overall_fixed
 Visualized_EMG_data/
 .vscode/

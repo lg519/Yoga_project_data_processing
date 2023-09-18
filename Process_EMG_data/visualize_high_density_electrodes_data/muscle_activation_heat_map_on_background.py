@@ -5,9 +5,15 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from apply_processing_pipeline import normalize_signal
-from amplifier_config import sampling_frequency
-from utilis import get_mat_filenames, get_partecipant_type, get_exercise_name
+from Process_EMG_data.helpers.apply_processing_pipeline import normalize_signal
+from Process_EMG_data.helpers.amplifier_config import sampling_frequency
+from Process_EMG_data.helpers.utilis import (
+    get_mat_filenames,
+    get_partecipant_type,
+    get_exercise_name,
+)
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from PIL import Image, ImageDraw, ImageFont
 
 
 def plot_heatmap(activations, active_channels, title, save_path):
@@ -35,36 +41,88 @@ def plot_heatmap(activations, active_channels, title, save_path):
     plt.close()
 
 
-def plot_combined_heatmap(activations_list, active_channels_list, title, save_path):
-    fig, axes = plt.subplots(1, len(activations_list), figsize=(15, 5))
+from matplotlib.transforms import Affine2D
 
-    for idx, (ax, activations, active_channels) in enumerate(
-        zip(axes, activations_list, active_channels_list)
+from matplotlib.cm import get_cmap
+
+
+def plot_combined_heatmap_on_bg(
+    activations_list,
+    active_channels_list,
+    title,
+    save_path,
+    background_path,
+    positions,
+    scales,
+    rotations,
+):
+    fig, ax = plt.subplots(figsize=(15, 5))
+    bg_img = plt.imread(background_path)
+    ax.imshow(bg_img, aspect="equal", extent=[0, bg_img.shape[1], 0, bg_img.shape[0]])
+
+    # Define a colormap to pick colors for arrows
+    colormap = get_cmap(
+        "tab10"
+    )  # Using 'tab10' which has 10 distinguishable colors, but you can choose any other
+    arrow_colors = [colormap(i) for i in range(len(activations_list))]
+
+    arrow_artists = []  # This list will be used to create the legend
+
+    for idx, (activations, active_channels, pos, scale, rotation) in enumerate(
+        zip(activations_list, active_channels_list, positions, scales, rotations)
     ):
         grid = np.zeros((8, 8))
         for i, ch in enumerate(active_channels):
             row = (ch - 1) // 8
             col = (ch - 1) % 8
             grid[row][col] = activations[i]
-        im = ax.imshow(grid, cmap="viridis", interpolation="nearest")
-        for i, ch in enumerate(active_channels):
-            row = (ch - 1) // 8
-            col = (ch - 1) % 8
-            ax.text(
-                col,
-                row,
-                str(ch),
-                ha="center",
-                va="center",
-                color="white" if activations[i] < 0.5 else "black",
-            )
-        fig.colorbar(
-            im, ax=ax, label="Muscle Activation"
-        )  # Individual colorbar for each subplot
-        ax.set_title(f"Grid {idx + 1}")  # Updated line
-        ax.axis("off")
 
-    plt.suptitle(title)
+        # Convert grid to RGB image using viridis colormap
+        grid_colored = plt.cm.viridis(grid / np.max(grid))
+        grid_rgb = (grid_colored[:, :, :3] * 255).astype(np.uint8)
+
+        # Create Affine transformation for grid
+        rot_trans = (
+            Affine2D()
+            .translate(-pos[0], -pos[1])
+            .rotate_deg(rotation)
+            .translate(pos[0], pos[1])
+        )
+        ax.imshow(
+            grid_rgb,
+            extent=[
+                pos[0],
+                pos[0] + grid_rgb.shape[1] * scale,
+                pos[1],
+                pos[1] + grid_rgb.shape[0] * scale,
+            ],
+            transform=rot_trans + ax.transData,
+            interpolation="nearest",
+        )
+
+        # Adjust arrow position based on rotation
+        arrow_x = pos[0] + grid_rgb.shape[1] * scale  # Exactly on the right border
+        arrow_y = pos[1] + grid_rgb.shape[0] * scale / 2  # Centered vertically
+        arrow_x, arrow_y = rot_trans.transform_point([arrow_x, arrow_y])
+        arrow_artist = ax.arrow(
+            arrow_x,
+            arrow_y,
+            10 * np.cos(np.radians(rotation)),
+            10 * np.sin(np.radians(rotation)),
+            head_width=10,
+            head_length=20,
+            fc=arrow_colors[idx],
+            ec=arrow_colors[idx],
+            label=f"Grid {idx + 1}",  # We add label to arrow for the legend
+        )
+        arrow_artists.append(arrow_artist)
+
+    ax.set_title(title, fontsize=10, y=1.15)
+    ax.legend(
+        handles=arrow_artists, loc="upper right"
+    )  # Displaying legend using arrow artists
+    ax.axis("off")
+    plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.close()
 
@@ -189,7 +247,7 @@ if __name__ == "__main__":
         ),
     ]
 
-    save_directory = os.path.join(directory_path, "figures_heatmaps")
+    save_directory = os.path.join(directory_path, "figures_heatmaps_on_background")
     os.makedirs(save_directory, exist_ok=True)
 
     for exercise_name, all_activations in activations_per_exercise.items():
@@ -206,11 +264,36 @@ if __name__ == "__main__":
             ]
             heatmap_save_path = os.path.join(
                 save_directory,
-                f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1} - Heatmap.png",
+                f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1} - Heatmap_on_background.png",
             )
-            plot_combined_heatmap(
+
+            # YT1_testing_7_MAT config
+            # positions = [
+            #     (1300, 2400),
+            #     (1350, 1400),
+            #     (1040, 1680),
+            # ]  # adjust these as required
+            # background_path = "Process_EMG_data/images/YT1_back.jpg"
+            # scales = [60, 60, 60]  # adjust these scales as required
+            # rotations = [70, -10, 100]
+
+            # YT1_testing_6_MAT config
+            positions = [
+                (840, 750),
+                (215, 660),
+                (215, 600),
+            ]  # adjust these as required
+            background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
+            scales = [5.8, 5.8, 5.8]  # adjust these scales as required
+            rotations = [180, 0, 0]
+
+            plot_combined_heatmap_on_bg(
                 combined_activations,
                 [grid[1] for grid in grids],
                 f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1}",
                 heatmap_save_path,
+                background_path,
+                positions,
+                scales,
+                rotations,
             )

@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import re
-from amplifier_config import get_channel_names
+from Process_EMG_data.helpers.amplifier_config import get_channel_names
 
 if __name__ == "__main__":
     # Hide the main tkinter window
@@ -41,9 +41,9 @@ if __name__ == "__main__":
     # Number of channels to plot
     num_channels_to_plot = len(channel_names)
 
-    # Create time array for x-axis, considering sampling frequency
+    # Create frequency array for x-axis, considering sampling frequency
     sampling_frequency = 2000  # Hz
-    time = np.arange(0, len(data[0])) / sampling_frequency
+    frequencies = np.fft.fftfreq(data.shape[1], d=1 / sampling_frequency)
 
     # Create a new figure
     fig, axs = plt.subplots(
@@ -51,13 +51,19 @@ if __name__ == "__main__":
     )
     fig.suptitle(f"{participant_type} - {yoga_position}", fontsize=14, weight="bold")
 
-    # Plot the data in separate subplots
+    # Plot the magnitude of the Fourier transform in separate subplots
     for i in range(num_channels_to_plot):
-        axs[i].plot(time, data[i, :])
+        spectrum = np.abs(np.fft.fft(data[i, :]))
+        axs[i].plot(frequencies, spectrum)
         axs[i].set_title(f"Channel {i+1} - {channel_names[i]}")
-        axs[i].set_ylabel("Amplitude (mV)")
+        axs[i].set_ylabel("Magnitude")
+        axs[i].set_xlim([0, sampling_frequency / 2])  # Only show positive frequencies
 
-    axs[-1].set_xlabel("Time (s)")
+        # Adding vertical lines at 20Hz and 450Hz
+        axs[i].axvline(20, color="r", linestyle="--", alpha=0.6)
+        axs[i].axvline(450, color="r", linestyle="--", alpha=0.6)
+
+    axs[-1].set_xlabel("Frequency (Hz)")
 
     # Show the plot
     plt.tight_layout()
