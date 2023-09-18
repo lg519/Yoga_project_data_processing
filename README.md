@@ -1,6 +1,6 @@
 # Overview
 
-This repository is structured to process EMG (Electromyography) data through various utilities and visualizations. The repository has been structured into folders each catering to specific functionalities as detailed [here](#repository-structure).
+This repository is structured to process EMG (Electromyography) data through various utilities and visualizations. The repository has been structured into folders each catering to specific functionalities as detailed [here](#repository-structure). If you are unfamiliar with programming, the [getting started guide](#getting-started) will enable you to download the necessary files, install the required libraries and start running the various scripts for processing the data.
 
 # Getting Started
 
@@ -129,41 +129,12 @@ In the `Yoga_Project_Data_Processing` repository, there are four primary folders
    - **Purpose**: All the visualizations created by the `Process_EMG_Data` scripts are saved here.
    - **Note**: There's an exception for visualizations related to high density electrodes. Instead of this folder, they are saved within subfolders inside the `EMG_data` folder.
 
-## Folder: Process_EMG_data
 
-This folder is dedicated to the processing and visualization of EMG recordings, after they have been converted in `.mat` files.
-
-### Process_EMG_data folder Structure:
-
-1. **helpers**
-    - This directory contains utility functions and scripts that aid in the processing of the EMG data.
-    - **amplifier_config.py**: Contains configuration details for the amplifier used.
-    - **apply_processing_pipeline.py**: Contains functions to apply the signal processing pipeline on the EMG data.
-    - **filtering.py**: Contains various filters implementaition used for signal processing.
-    - **mvc_processing.py**: Contains functions to calculate the MVC (Maximum Voluntary Contraction) for the recordings.
-    - **rectify_signal.py**: Rectifies the EMG signal.
-    - **similarity_metrics.py**: Contains metrics to measure similarity (Pearson correlation, ICC, Cosine similarity) in processed data.
-    - **utils.py**: Contains general utilities to extract information form the files.
-
-2. **images**
-    - Contains image files used for high density electrodes visualization.
-3. **real_time_processing**
-    - Contains scripts related to real-time processing of EMG data.
-    - **find_minimum_window.py**: Identifies the minimum time window for processing using standard deviation.
-
-4. **visualize_8_channels_electrode_data**
-    - Contains visualization scripts specifically for data from 8-channel electrodes.
-    - Contains various visualization methods to understand muscle activations and other relevant data features.
-
-5. **visualize_high_density_electrodes_data**
-    - Contains visualization scripts for high-density electrode data.
-    - Scripts in this directory are focused on visualizing muscle activation heat maps for 64 channels.
-    - Contains scripts to visualize the data processing stages (envelope of the signal, FFT, filtered signal...) of the high density data. As my laptop did not have enough processing power the script prompts to select how many files to process and the file to start the processing from. This feature is helpful as it enables users to segment the processing into manageable chunks, thus avoiding system overloads.
+## Folder: EMG_data
 
 
-## Folder: Extract_EMG_data
 
-## Extract_EMG_Readings Folder
+## Folder: Extract_EMG_Readings 
 
 The `Extract_EMG_Readings` folder is a pivotal starting point in the `Yoga_Project_Data_Processing` repository. It contains scripts dedicated to preparing and converting raw EMG data to a more usable format. The scripts in this directory should be executed **sequentially**; begin with `rename_otb_files.py` and then proceed with `convert_otb_to_mat_files.m`. Let's delve into the specifics of the two main scripts inside this folder:
 
@@ -202,5 +173,37 @@ The `Extract_EMG_Readings` folder is a pivotal starting point in the `Yoga_Proje
 
 **Data expectations**: 
 - The script expects to find `.otb+` files (those renamed by the previous script) in the directory where it's executed.
+
+## Folder: Process_EMG_data
+
+This folder is dedicated to the processing and visualization of EMG recordings, after they have been converted in `.mat` files.
+
+### Process_EMG_data folder Structure:
+
+1. **helpers**
+    - This directory contains utility functions and scripts that aid in the processing of the EMG data.
+    - **amplifier_config.py**: Contains configuration details for the amplifier used.
+    - **apply_processing_pipeline.py**: Contains functions to apply the signal processing pipeline on the EMG data.
+    - **filtering.py**: Contains various filters implementaition used for signal processing.
+    - **mvc_processing.py**: Contains functions to calculate the MVC (Maximum Voluntary Contraction) for the recordings.
+    - **rectify_signal.py**: Rectifies the EMG signal.
+    - **similarity_metrics.py**: Contains metrics to measure similarity (Pearson correlation, ICC, Cosine similarity) in processed data.
+    - **utils.py**: Contains general utilities to extract information form the files.
+
+2. **images**
+    - Contains image files used for high density electrodes visualization.
+3. **real_time_processing**
+    - Contains scripts related to real-time processing of EMG data.
+    - **find_minimum_window.py**: Identifies the minimum time window for processing using standard deviation.
+
+4. **visualize_8_channels_electrode_data**
+    - Contains visualization scripts specifically for data from 8-channel electrodes.
+    - Contains various visualization methods to understand muscle activations and other relevant data features.
+
+5. **visualize_high_density_electrodes_data**
+    - Contains visualization scripts for high-density electrode data.
+    - Scripts in this directory are focused on visualizing muscle activation heat maps for 64 channels.
+    - Contains scripts to visualize the data processing stages (envelope of the signal, FFT, filtered signal...) of the high density data. As my laptop did not have enough processing power the script prompts to select how many files to process and the file to start the processing from. This feature is helpful as it enables users to segment the processing into manageable chunks, thus avoiding system overloads.
+
 
 
