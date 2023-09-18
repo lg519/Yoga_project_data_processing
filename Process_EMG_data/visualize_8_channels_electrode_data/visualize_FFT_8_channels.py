@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import re
-from Process_EMG_data.helpers.amplifier_config import get_channel_names
+from Process_EMG_data.helpers.utilis import get_channel_names
 
 if __name__ == "__main__":
     # Hide the main tkinter window
