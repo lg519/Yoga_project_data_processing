@@ -12,37 +12,8 @@ from Process_EMG_data.helpers.utilis import (
     get_partecipant_type,
     get_exercise_name,
 )
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from PIL import Image, ImageDraw, ImageFont
-
-
-def plot_heatmap(activations, active_channels, title, save_path):
-    grid = np.zeros((8, 8))
-    for i, ch in enumerate(active_channels):
-        row = (ch - 1) // 8
-        col = (ch - 1) % 8
-        grid[row][col] = activations[i]
-    plt.imshow(grid, cmap="viridis", interpolation="nearest")
-    for i, ch in enumerate(active_channels):
-        row = (ch - 1) // 8
-        col = (ch - 1) % 8
-        plt.text(
-            col,
-            row,
-            str(ch),
-            ha="center",
-            va="center",
-            color="white" if activations[i] < 0.5 else "black",
-        )
-    plt.colorbar(label="Muscle Activation")
-    plt.title(title)
-    plt.axis("off")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
-    plt.close()
-
 
 from matplotlib.transforms import Affine2D
-
 from matplotlib.cm import get_cmap
 
 
@@ -56,6 +27,20 @@ def plot_combined_heatmap_on_bg(
     scales,
     rotations,
 ):
+    """
+    Plots a combined heatmap of multiple grids on a background image.
+
+    Parameters:
+    - activations_list (list of list of float): Nested list of muscle activations for different grids.
+    - active_channels_list (list of list of int): Nested list of active channels for different grids.
+    - title (str): Title for the plot.
+    - save_path (str): Path to save the combined heatmap.
+    - background_path (str): Path to the background image.
+    - positions (list of tuple): List of positions (x, y) for placing each grid on the background.
+    - scales (list of float): List of scales for each grid.
+    - rotations (list of float): List of rotations (in degrees) for each grid.
+    """
+
     fig, ax = plt.subplots(figsize=(15, 5))
     bg_img = plt.imread(background_path)
     ax.imshow(bg_img, aspect="equal", extent=[0, bg_img.shape[1], 0, bg_img.shape[0]])
@@ -128,6 +113,17 @@ def plot_combined_heatmap_on_bg(
 
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute muscle activations for exercises from provided files.
+
+    Parameters:
+    - filenames (list of str): List of paths to the .mat files.
+    - channel_indices (list of int): List of channel indices to compute activations for.
+    - mvc_values (list of float): List of maximum voluntary contraction values.
+
+    Returns:
+    - defaultdict: Dictionary with exercise names as keys and a list of activations for each channel as values.
+    """
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
     for filename in filenames:
@@ -156,7 +152,7 @@ if __name__ == "__main__":
         title="Select directory with exercise data"
     )
 
-    mvc_values = [1] * 64  # Assigning all 64 values to 1
+    mvc_values = [1] * 64  # Assigning all 64 values to 1 to avoid normalization
 
     filenames = get_mat_filenames(directory_path)
     participant_type = get_partecipant_type(filenames[0])

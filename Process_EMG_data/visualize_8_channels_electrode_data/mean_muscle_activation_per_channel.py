@@ -27,6 +27,21 @@ def plot_mean_muscle_activation_per_channel(
     max_mvc_filename,
     asymmetrical_exercises=["side_angle", "side_plank", "warrior2"],
 ):
+    """
+    Plot the mean muscle activation for each exercise per channel.
+
+    Args:
+        activation_means (list): List of mean activation values for each exercise.
+        exercise_names (list): List of names of the exercises.
+        channel_name (str): Name of the channel.
+        participant_type (str): Type of the participant.
+        max_mvc_filename (str): Filename used for max MVC normalization.
+        asymmetrical_exercises (list, optional): List of exercises considered asymmetrical. Defaults to ["side_angle", "side_plank", "warrior2"].
+
+    Returns:
+        None
+    """
+
     # Filter out exercise names containing "MVC" and their corresponding activations
     exercise_names_filtered, activation_means_filtered = zip(
         *[
@@ -99,6 +114,17 @@ def plot_mean_muscle_activation_per_channel(
 
 
 def compute_channel_mean_activations(filenames, channel_index, mvc_values):
+    """
+    Compute mean activations for each exercise based on a given channel.
+
+    Args:
+        filenames (list): List of filenames containing the EMG data.
+        channel_index (int): Index of the channel in consideration.
+        mvc_values (list): List of MVC values for normalization.
+
+    Returns:
+        dict: Dictionary mapping exercise names to their respective mean activations.
+    """
     # Initialize dictionary to store mean muscle activation values per exercise
     activation_means_dict = defaultdict(list)
 

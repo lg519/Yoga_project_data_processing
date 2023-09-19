@@ -33,6 +33,21 @@ def plot_and_save(
     start_channel,
     rep_number=None,
 ):
+    """
+    Plots and saves the given data for a specific range of channels.
+
+    Parameters:
+        - data (ndarray): array containing channel data.
+        - sampling_frequency (float): The sampling frequency of the data.
+        - folder (str): Directory where the plot will be saved.
+        - filename_prefix (str): Prefix for the saved file's name.
+        - title_prefix (str): Prefix for the plot's title.
+        - start_channel (int): The first channel to plot.
+        - rep_number (int, optional): Repetition number if available.
+
+    Returns:
+        None. Saves the plot to the specified folder.
+    """
     total_channels = data.shape[0]
     channels_per_plot = 8
 

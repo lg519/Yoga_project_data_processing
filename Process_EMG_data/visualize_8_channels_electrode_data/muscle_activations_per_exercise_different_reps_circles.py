@@ -31,6 +31,20 @@ def plot_muscle_activation_per_exercise_different_reps(
     participant_type,
     save_directory,
 ):
+    """
+    Plot the muscle activation for each repetition in a polar coordinate system.
+
+    Parameters:
+    - activations (list): List of activations for each channel.
+    - channel_names (list): List of channel names.
+    - exercise_name (str): Name of the exercise being visualized.
+    - participant_type (str): Type of participant (e.g., "athlete", "non-athlete").
+    - save_directory (str): Directory path to save the plotted figure.
+
+    Returns:
+    None
+    """
+
     # Checks for empty reps and activations
     for reps, channel in zip(activations, channel_names):
         if len(reps) == 0:
@@ -104,6 +118,18 @@ def plot_muscle_activation_per_exercise_different_reps(
 
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute activations for each exercise based on the given filenames.
+
+    Parameters:
+    - filenames (list): List of filenames containing exercise data.
+    - channel_indices (list): List of indices corresponding to channels.
+    - mvc_values (list): Maximum voluntary contraction values for each channel.
+
+    Returns:
+    - activations_per_exercise (dict): A dictionary containing activations for each exercise.
+    """
+
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
     for filename in filenames:

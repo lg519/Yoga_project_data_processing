@@ -14,32 +14,19 @@ from Process_EMG_data.helpers.utilis import (
 )
 
 
-def plot_heatmap(activations, active_channels, title, save_path):
-    grid = np.zeros((8, 8))
-    for i, ch in enumerate(active_channels):
-        row = (ch - 1) // 8
-        col = (ch - 1) % 8
-        grid[row][col] = activations[i]
-    plt.imshow(grid, cmap="viridis", interpolation="nearest")
-    for i, ch in enumerate(active_channels):
-        row = (ch - 1) // 8
-        col = (ch - 1) % 8
-        plt.text(
-            col,
-            row,
-            str(ch),
-            ha="center",
-            va="center",
-            color="white" if activations[i] < 0.5 else "black",
-        )
-    plt.colorbar(label="Muscle Activation")
-    plt.title(title)
-    plt.axis("off")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
-    plt.close()
-
-
 def plot_combined_heatmap(activations_list, active_channels_list, title, save_path):
+    """
+    Plot and save a combined heatmap for a list of muscle activations.
+
+    Parameters:
+        - activations_list (list of lists): List of muscle activations for multiple grids.
+        - active_channels_list (list of lists): List of active channels for each grid.
+        - title (str): Combined title for the heatmaps.
+        - save_path (str): Path to save the combined heatmap.
+
+    Returns:
+        None. Saves the heatmap to the specified path.
+    """
     fig, axes = plt.subplots(1, len(activations_list), figsize=(15, 5))
 
     for idx, (ax, activations, active_channels) in enumerate(
@@ -74,6 +61,17 @@ def plot_combined_heatmap(activations_list, active_channels_list, title, save_pa
 
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute muscle activations for the exercises in the given filenames.
+
+    Parameters:
+        - filenames (list): List of file paths containing exercise data.
+        - channel_indices (list): Indices of the channels to consider.
+        - mvc_values (list): List of Maximum Voluntary Contraction (MVC) values for all channels.
+
+    Returns:
+        defaultdict: A dictionary with exercise names as keys and activations as values.
+    """
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
     for filename in filenames:

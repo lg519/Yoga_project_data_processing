@@ -25,6 +25,19 @@ def plot_mean_muscle_activation_per_exercise(
     participant_type,
     max_mvc_filenames,
 ):
+    """
+    Plot the mean muscle activation for each channel for a given exercise.
+
+    Args:
+        activation_means (list): Mean activation values for each channel.
+        channel_names (list): Names of the channels.
+        exercise_name (str): Name of the exercise.
+        participant_type (str): Type of the participant.
+        max_mvc_filenames (list): Filenames used for max MVC normalization.
+
+    Returns:
+        None
+    """
     # Create a bar graph of the average muscle activation for each channel
     plt.figure(figsize=(10, 6))
     bars = plt.bar(range(len(channel_names)), activation_means)
@@ -71,6 +84,17 @@ def plot_mean_muscle_activation_per_exercise(
 
 
 def compute_exercise_mean_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute mean activations for each channel based on a list of exercises.
+
+    Args:
+        filenames (list): List of filenames containing the EMG data.
+        channel_indices (list): Indices of the channels.
+        mvc_values (list): List of MVC values for normalization.
+
+    Returns:
+        dict: Dictionary mapping exercise names to their respective mean activations for each channel.
+    """
     activation_means_per_exercise = defaultdict(lambda: [0] * len(channel_indices))
 
     for filename in filenames:

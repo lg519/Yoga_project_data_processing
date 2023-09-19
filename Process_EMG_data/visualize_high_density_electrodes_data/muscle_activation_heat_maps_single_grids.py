@@ -15,6 +15,18 @@ from Process_EMG_data.helpers.utilis import (
 
 
 def plot_heatmap(activations, active_channels, title, save_path):
+    """
+    Plot a heatmap for given muscle activations and save it.
+
+    Parameters:
+        - activations (list): List of muscle activations.
+        - active_channels (list): List of active channels.
+        - title (str): Title for the heatmap.
+        - save_path (str): Path to save the generated heatmap.
+
+    Returns:
+        None. Saves the heatmap to the specified path.
+    """
     grid = np.zeros((8, 8))
     for i, ch in enumerate(active_channels):
         row = (ch - 1) // 8
@@ -40,6 +52,16 @@ def plot_heatmap(activations, active_channels, title, save_path):
 
 
 def compute_exercise_activations(filenames, mvc_values):
+    """
+    Compute muscle activations for the exercises in given filenames.
+
+    Parameters:
+        - filenames (list): List of file paths containing exercise data.
+        - mvc_values (list): List of Maximum Voluntary Contraction (MVC) values for all channels.
+
+    Returns:
+        defaultdict: A dictionary with exercise names as keys and activations as values.
+    """
     activations_per_exercise = defaultdict(lambda: [list() for _ in range(64)])
 
     for filename in filenames:

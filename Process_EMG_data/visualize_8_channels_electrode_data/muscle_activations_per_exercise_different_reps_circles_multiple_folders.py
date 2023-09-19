@@ -18,6 +18,7 @@ from Process_EMG_data.helpers.utilis import (
     get_mat_filenames,
     get_exercise_name,
     get_channel_names,
+    get_rep_number,
 )
 
 from Process_EMG_data.helpers.similarity_metrics import (
@@ -30,7 +31,17 @@ import plotly.graph_objects as go
 import pandas as pd
 
 
-def select_multiple_directories(title="Select Directories"):
+def select_multiple_directories(title="Select root directory with exercise data"):
+    """
+    Prompt the user to select the root directory containing the subdirectories with the MAT files.
+
+    Args:
+    - title (str): Title for the directory selection dialog.
+
+    Returns:
+    - tuple: Directories for YT, YP, and all MAT directories.
+    """
+
     all_directories = []
     yt_directories = []
     yp_directories = []
@@ -51,13 +62,30 @@ def select_multiple_directories(title="Select Directories"):
 
 
 def generate_colors(n):
-    """Generate n distinct colors using the viridis colormap."""
+    """
+    Generate a list of distinct colors.
+
+    Args:
+    - n (int): Number of colors to generate.
+
+    Returns:
+    - list: List of distinct colors in rgba format.
+    """
     colormap = plt.cm.viridis
     return [colormap(i) for i in np.linspace(0, 1, n)]
 
 
 # Convert tuple color to rgba string
 def tuple_to_rgba(color_tuple):
+    """
+    Convert a tuple-based color representation to an RGBA string.
+
+    Args:
+    - color_tuple (tuple): Color as an RGBA tuple.
+
+    Returns:
+    - str: RGBA color string.
+    """
     return f"rgba({int(color_tuple[0]*255)}, {int(color_tuple[1]*255)}, {int(color_tuple[2]*255)}, {color_tuple[3]})"
 
 
@@ -69,6 +97,21 @@ def plot_muscle_activation_per_exercise_different_reps(
     save_directory,
     colors_by_directory,
 ):
+    """
+    Create a plotly figure representing muscle activation for different reps.
+
+    Args:
+    - overall_activations_by_exercise (dict): Nested dictionary of activations.
+    - channel_names (list): List of channel names.
+    - exercise_name (str): Name of the exercise to visualize.
+    - participant_type (str): Type of the participant (e.g., YT, YP).
+    - save_directory (str): Directory path to save the generated figure.
+    - colors_by_directory (dict): Color mapping for directories.
+
+    Returns:
+    - None: The function saves the plot to the specified directory.
+    """
+
     # Activations for the given exercise
     activations_by_directory = overall_activations_by_exercise[exercise_name]
 
@@ -146,16 +189,18 @@ def plot_muscle_activation_per_exercise_different_reps(
     fig.write_html(plot_filename)
 
 
-def get_rep_number(filename):
-    """Extracts the repetition number from the filename."""
-    base_name = os.path.basename(filename)
-    rep_num_str = base_name.split("_rep")[-1].split(".")[
-        0
-    ]  # Assuming the extension comes after "_repX"
-    return int(rep_num_str)
-
-
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute activations for exercises.
+
+    Args:
+    - filenames (list): List of filenames containing EMG data.
+    - channel_indices (list): Indices for channels.
+    - mvc_values (list): Maximum voluntary contraction values for channels.
+
+    Returns:
+    - dict: Dictionary of activations for each exercise.
+    """
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
     # Dictionary to keep track of the last rep number for each exercise
@@ -188,6 +233,18 @@ def compute_exercise_activations(filenames, channel_indices, mvc_values):
 def save_activations_to_excel(
     overall_activations_by_exercise, channel_names, save_directory
 ):
+    """
+    Save activations to an Excel file.
+
+    Args:
+    - overall_activations_by_exercise (dict): Nested dictionary of activations.
+    - channel_names (list): List of channel names.
+    - save_directory (str): Directory path to save the Excel file.
+
+    Returns:
+    - None: The function saves the data to the specified directory.
+    """
+
     # Creating an empty DataFrame to store the final result
     result_df = pd.DataFrame()
 

@@ -112,3 +112,21 @@ def trim_data(data, sampling_frequency):
     samples_to_remove = int(sampling_frequency)
 
     return data[samples_to_remove:-samples_to_remove]
+
+
+def get_rep_number(filename):
+    """
+    Extract repetition number from the filename.
+
+    Args:
+    - filename (str): File name containing the repetition info.
+
+    Returns:
+    - int: Repetition number extracted from the filename.
+    """
+
+    base_name = os.path.basename(filename)
+    rep_num_str = base_name.split("_rep")[-1].split(".")[
+        0
+    ]  # Assuming the extension comes after "_repX"
+    return int(rep_num_str)

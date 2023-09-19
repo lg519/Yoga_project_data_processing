@@ -29,6 +29,20 @@ def plot_muscle_activation_per_exercise_different_reps(
     participant_type,
     save_directory,
 ):
+    """
+    Plot muscle activations per exercise for different repetitions.
+
+    Args:
+        activations (list): Activation values for different repetitions.
+        channel_names (list): Names of the channels.
+        exercise_name (str): Name of the exercise.
+        participant_type (str): Type of the participant.
+        save_directory (str): Directory to save the plot.
+
+    Returns:
+        None
+    """
+
     plt.figure(figsize=(10, 6))
 
     # Get the number of reps for the first channel (assuming consistent repetitions across channels)
@@ -76,19 +90,30 @@ def plot_muscle_activation_per_exercise_different_reps(
     plt.legend()
 
     # Display the plot
-    # plt.tight_layout()
-    # plt.show()
+    plt.tight_layout()
+    plt.show()
 
     # Save the plot
-    plt.tight_layout()
-    plot_filename = os.path.join(
-        save_directory, f"{participant_type} - {exercise_name}.png"
-    )
-    plt.savefig(plot_filename)
-    plt.close()
+    # plt.tight_layout()
+    # plot_filename = os.path.join(
+    #     save_directory, f"{participant_type} - {exercise_name}.png"
+    # )
+    # plt.savefig(plot_filename)
+    # plt.close()
 
 
 def compute_exercise_activations(filenames, channel_indices, mvc_values):
+    """
+    Compute activations for a specific exercise based on given files.
+
+    Args:
+        filenames (list): List of filenames containing the EMG data.
+        channel_indices (list): Indices of the channels.
+        mvc_values (list): List of MVC values for normalization.
+
+    Returns:
+        dict: Dictionary with exercise names as keys and corresponding activation values.
+    """
     activations_per_exercise = defaultdict(lambda: [list() for _ in channel_indices])
 
     for filename in filenames:

@@ -28,6 +28,20 @@ def plot_muscle_activation_per_channel_different_reps_unnormalized(
     participant_type,
     max_mvc_filename,
 ):
+    """
+    Plot muscle activations for different repetitions without normalization.
+
+    Args:
+        activation_reps (list of lists): Activation values for different reps for each exercise.
+        exercise_names (list): Names of the exercises.
+        channel_name (str): Name of the channel.
+        participant_type (str): Type of the participant.
+        max_mvc_filename (str): Filename used for max MVC reference.
+
+    Returns:
+        None
+    """
+
     # Filter out exercise names containing "MVC" and their corresponding activations
     exercise_names_filtered, activation_reps_filtered = zip(
         *[
@@ -120,6 +134,17 @@ def plot_muscle_activation_per_channel_different_reps_unnormalized(
 
 
 def compute_channel_mean_activations(filenames, channel_index, mvc_values):
+    """
+    Compute mean activations for a channel based on a list of exercises.
+
+    Args:
+        filenames (list): List of filenames containing the EMG data.
+        channel_index (int): Index of the channel.
+        mvc_values (list): List of MVC values for normalization.
+
+    Returns:
+        dict: Dictionary mapping exercise names to their respective mean activations for different reps.
+    """
     activation_reps_dict = defaultdict(list)
 
     for filename in filenames:
