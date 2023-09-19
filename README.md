@@ -99,9 +99,9 @@ This command tells `pip` to install all the libraries listed in the `requirement
    - -m is a special command that tells Python to look for a module or script.
    - FolderName.SubfolderName.ScriptName is the path to the script you want to run, but with dots instead of slashes and without the .py at the end.
 
-    Here's a real-life example: Let's say you want to run a script called visualize_data_processing_stages_64_channels.py which is inside the Process_EMG_data\visualize_high_density_electrodes_data folder. You would type:
+    Here's a real-life example: Let's say you want to run a script called `muscle_activations_per_exercise_different_reps_cartesian.py` which is inside the `Process_EMG_data\visualize_8_channels_electrode_data folder`. You would type:
     ```bash
-    /bin/python3 -m Process_EMG_data.visualize_high_density_electrodes_data.visualize_data_processing_stages_64_channels
+    /bin/python3 -m Process_EMG_data.visualize_8_channels_electrode_data.muscle_activations_per_exercise_different_reps_cartesian
     ```
     And press Enter.
 
