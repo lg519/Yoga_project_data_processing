@@ -239,3 +239,199 @@ This folder is dedicated to the processing and visualization of EMG recordings, 
 
 
 
+> ### Important Note on Mode Selection:
+> 
+> In the visualization scripts, you have the flexibility to pick between two modes for choosing calibration poses:
+> 
+> 1. **Automatic Mode**: This mode automatically selects the calibration poses by looking for the maximum activation for a given muscle across all the poses.
+> 2. **Fixed Mode**: In this mode, you manually choose the calibration poses.
+> 
+> To toggle between these modes, you'll need to make a small change in the `Process_EMG_data/helpers/mvc_processing.py` file.
+> 
+> **Step-by-Step Guide**:
+> 
+> 1. Open the file named `mvc_processing.py` located inside the `Process_EMG_data/helpers/` directory.
+> 2. Look for the line that says:
+>    ```python
+>    use_automatic = False  # Set to False to use the "fixed" version. You can change this based on your preference.
+>    ```
+> 3. If you want to use the **Automatic Mode**, change `False` to `True` like this: 
+>    ```python
+>    use_automatic = True  
+>    ```
+>    Leave it as `False` if you prefer the **Fixed Mode**.
+> 4. Save the file after making your changes.
+
+
+### visualize_8_channels_electrode_data Process_EMG_data scripts
+
+### 1. `mean_muscle_activation_per_channel.py`
+
+**What it does**:
+- This Python script performs the task of processing and analyzing Electromyography (EMG) data that is stored in `.mat` files.
+- The script processes the EMG data to extract the average muscle activation values per channel for each exercise performed.
+- After processing, the script visualizes the average muscle activation for each exercise per channel using a bar chart.
+- For visualization, exercises are categorized as either symmetrical (blue bars) or asymmetrical (red bars) based on the exercise name.
+
+**How to use it**: 
+- Simply run the script. Upon execution, a dialog window will open prompting you to select the directory containing the `.mat` files with the exercise data. For example, you could run it on the `YP2_actual_testing_1_MAT` directory.
+- Once selected, the script will process the data and display the visualized results.
+
+### 2. `mean_muscle_activation_per_exercise.py`
+
+**What it does**: 
+- This Python script is dedicated to computing and visualizing the mean muscle activation for each EMG channel based on given exercises.
+- The script processes the data, normalizes it using the "Maximum Voluntary Contraction" (MVC) values, and then computes the average activation for each channel.
+- For each exercise, a bar chart is displayed showing the average muscle activation across the channels.
+- A separate table is also generated mapping each channel to the MVC file used for its normalization.
+
+**How to use it**: 
+- Run the script. Upon execution, a dialog window will appear prompting you to select the directory containing the `.mat` files with exercise data. For example, you could run it on the `YP2_actual_testing_1_MAT` directory.
+- Once the directory is selected, the script will process and visualize the mean muscle activation values.
+- The visualized results will display average muscle activation per channel for each exercise and also provide a mapping between channels and their corresponding MVC files.
+
+### 3. `muscle_activations_per_channel_different_reps_unnormalized.py`
+
+**What it does**:
+- This Python script processes and visualizes muscle activations from EMG recordings without normalization.
+- Utilizes the data from .mat files to compute activations for each muscle during various exercises.
+- Displays these activations for different repetitions and exercises using bar plots.
+
+**How to use it**: 
+- Run the script. Upon execution, a dialog window will appear prompting you to select the directory containing the `.mat` files with exercise data. For example, you could run it on the `YP2_actual_testing_1_MAT` directory.
+- Once the directory is selected, the script will process and visualize the unnormalized muscle activation values.
+
+### 4. `muscle_activations_per_exercise_different_reps_cartesian.py`
+
+**What it does**: 
+- This Python script processes and visualizes muscle activation data for different exercise repetitions.
+- It normalizes the signal based on maximal voluntary contraction (MVC) values.
+- The script then plots average muscle activations across channels for each repetition, displaying them alongside mean activations for the entire exercise.
+
+
+**How to use it**: 
+- Launch the script. Upon execution, a dialog window will prompt you to select the source directory containing the `.mat` files. For example, you could run it on the `YP2_actual_testing_1_MAT` directory.
+- Once you've selected the directory, the script will automatically process the files and generate plots for each exercise.
+
+
+### 5. `muscle_activations_per_exercise_different_reps_circles_multiple_folders.py`
+
+**What it does**: 
+- The script processes EMG data (muscle activity data) from various exercises performed during different repetitions and visualizes the data by overlaying each repetition using polar plots.
+- For each partecipant, the script will generate a unique color for visualization and will compute muscle activations for different exercises and repetitions.
+- Activations will be visualized using Plotly to generate polar plots for each exercise, detailing the activations across various repetitions.
+- Muscle activation summaries are also be saved to an Excel file for further analysis.
+What the script expects:
+- The script saves the visualizations in the `Visualized_EMG_data` directory
+
+**How to use it**: 
+- Launch the script. A dialog window will prompt you to select the root directory containing the subdirectories with the MAT files. For example, you could run it on the `actual_testing` directory.
+
+
+**Advanced Features**:
+- The script offers advanced features like calculating the Pearson correlation coefficient, ICC2, and cosine similarity for the muscle activations of different exercises. These metrics provide insight into the similarity and reliability of muscle activations across repetitions.
+
+
+### 6. `muscle_activations_per_exercise_different_reps_circles.py`
+
+**What it does**:
+- Processes EMG (muscle activity) data and visualizes it for different exercise repetitions.
+- Uses a polar coordinate system to visualize muscle activation for each repetition, showcasing the variation in activations across different channels.
+- The visualizations overlay mean muscle activations for the entire exercise with the activations for individual repetitions.
+- Additionally, it calculates MVC (Maximum Voluntary Contraction) values for each channel and generates a table mapping each channel to the MVC value.
+
+**How to use it**:
+
+- Launch the script. A dialog window will prompt you to select the root directory containing the subdirectories with the MAT files. For example, you could run it on the `actual_testing` directory.
+- After the directory selection, the script will process each subdirectory, compute the MVC values, and visualize muscle activations using polar plots.
+- The generated plots and MVC tables are saved in a folder named `Visualized_EMG_data` in the current working directory, under a subdirectory named after the parent directory you selected.
+
+
+### 7. `visualize_FFT_8_channels.py`
+
+**What it does**:
+- Processes and visualizes the Fourier transform of EMG data from a selected `.mat` file.
+- Allows users to choose a specific `.mat` file for analysis via a graphical user interface.
+- Each channel's spectrum is plotted in a separate subplot, with vertical lines indicating specific bandpass filter frequencies used (20Hz and 450Hz).
+
+**How to use it**:
+- Run the script.
+- A dialog window will appear prompting you to select a `.mat` file (e.g., `YP2_chaturanga_17_08_2023_12_06_39_rep1.mat`).
+- After file selection, the script will load the data and display the Fourier transformed spectrum of the data in separate subplots for each channel.
+
+**Note**:
+- The script assumes a sampling frequency of 2000Hz for the EMG data.
+- Only positive frequencies up to half the sampling frequency (Nyquist rate) are displayed.
+
+### 8. `visualize_raw_data_8_channels.py`
+
+**What it does**:
+- Processes and visualizes raw EMG data from a selected `.mat` file.
+- Enables users to choose a specific `.mat` file for analysis through a graphical user interface.
+- Extracts information from the filename regarding the participant type and yoga position.
+- Displays the raw EMG data for each channel in separate subplots.
+
+**How to use it**:
+- Execute the script.
+- A dialog window will open, prompting you to pick a `.mat` file (e.g., `YP2_12_04_2021_TreePose.mat`).
+-  After selecting a file, the script will load the data and illustrate the raw EMG data in separate subplots for every channel.
+
+**Note**:
+- The script presumes a sampling frequency of 2000Hz for the EMG data.
+- Each subplot demonstrates the amplitude of EMG signals in millivolts (mV) against time in seconds (s).
+
+
+### visualize_high_density_electrodes_data
+
+### 1. `muscle_activation_heat_maps.py`
+
+**What it does**:
+- This Python script processes EMG data and visualizes muscle activations using heatmaps.
+- The code works by extracting the muscle activations from `.mat` files and uses a plotting utility to create a combined heatmap of muscle activations.
+- These activations are plotted for various exercises and repetitions across different grids.
+- The script combines these heatmaps for visualization, making it easier to compare activations across different sections of the muscle grid.
+- It allows for the visualization of multiple grids at once and saves the visualized heatmaps for each exercise repetition.
+
+**How to use it**: 
+- Launch the script. A dialog window will appear prompting you to select the directory containing the `.mat` files with exercise data. For example, you could run it on the `YT1_testing_7_MAT` directory in the `high_density_electrodes` folder.
+- Once you've selected the directory, the script will process the data and generate heatmaps visualizing muscle activations for each repetition across multiple grids.
+- The visualized results will be saved in a folder named `figures_heatmaps` within the selected directory.
+
+### 2. `muscle_activation_heat_map_on_background.py`
+
+**What it does**:
+- This Python script processes and visualizes muscle activation from EMG recordings as heatmaps overlaid on background images.
+- The heatmaps are visualized on top of different grids based on the channel configuration.
+- Each heatmap represents the muscle activations from different repetitions and exercises.
+es.
+  
+**How to use it**:
+- Launch the script. A dialog window will appear prompting you to select the directory containing the `.mat` files with exercise data. For example, you could run it on the `YT1_testing_7_MAT` directory in the `high_density_electrodes` folder.
+- After selecting the directory, the script will process the EMG data, generate heatmaps for each repetition, and save them to the `figures_heatmaps_on_background` sub-directory.
+  
+### 3. `visualize_data_processing_stages_64_channels.py`
+
+**What it does**:
+- This Python script loads, processes, and visualizes EMG data stored in `.mat` files.
+- It reads raw EMG data, filters it using bandpass and notch filters, extracts its envelope, and then plots this data for multiple channels.
+- The script segments the plots based on a fixed number of channels per plot for clarity.
+- Processed data are organized and saved into directories like `raw_signal`, `filtered_signal`, and `envelope_signal` under the main `data_processing_stages` directory.
+
+**How to use it**:
+- Launch the script. A dialog window will appear prompting you to select the directory containing the `.mat` files with EMG data. For example, you could run it on the `YT1_testing_7_MAT` directory in the `high_density_electrodes` folder.
+- Input the number of files you want to plot and the starting file index when prompted.
+- The script will process each `.mat` file in the directory, apply filters, and generate plots which will be saved in the corresponding sub-directories of `data_processing_stages`.
+
+
+### 4. `visualize_FFT_64_channels`
+
+**What it does**:
+- This script loads EMG data from `.mat` files, calculates the Fourier transform, and visualizes the magnitude spectrum for multiple channels.
+- It dynamically splits the plots based on a fixed number of channels per plot, allowing for clear visualization.
+- The visualized frequency spectrum for each channel is saved into a directory called `FFT_raw_signal` under `data_processing_stages` in the chosen directory.
+
+**How to use it**:
+- Execute the script. A dialog window will appear prompting you to select the directory containing the `.mat` files with EMG data. For example, you could run it on the `YT1_testing_7_MAT` directory in the `high_density_electrodes` folder.
+- Enter the number of files you wish to process and visualize.
+- Input the starting file index when prompted.
+- The script processes each file, calculates the Fourier transform for every channel, visualizes the magnitude spectrum, and saves the plots in an organized manner.
