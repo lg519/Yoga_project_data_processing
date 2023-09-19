@@ -18,7 +18,15 @@ import tkinter as tk
 
 
 def process_mvc_data_for_channel(channel_data):
-    """Process raw MVC data for a specific channel and return the computed MVC value."""
+    """
+    Process raw MVC data for a specific channel and return the computed MVC value.
+
+    Args:
+        channel_data (ndarray): Raw MVC data for a specific channel.
+
+    Returns:
+        float: The computed MVC value for the channel.
+    """
 
     mvc_envelope = extract_envelope(channel_data, sampling_frequency)
 
@@ -27,6 +35,15 @@ def process_mvc_data_for_channel(channel_data):
 
 
 def get_mvc_files(directory_path):
+    """
+    Retrieve all the .mat files containing MVCs from a specified directory.
+
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+
+    Returns:
+        tuple: A tuple containing two lists: one with the raw data recordings (to be searched for MVC values) and one with their corresponding filenames.
+    """
     mvc_files = []
     mvc_filenames = []
     for filename in os.listdir(directory_path):
@@ -41,6 +58,18 @@ def get_mvc_files(directory_path):
 
 
 def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
+    """
+    Calculate the MVC value for a given channel by averaging the data over a specified window duration and
+    finding the maximum mean value.
+
+    Args:
+        data (list or ndarray): Raw MVC data for a channel.
+        sampling_frequency (int): The sampling frequency of the data.
+        window_duration (float, optional): Duration (in seconds) of the window over which to average the data. Default is 0.5 seconds.
+
+    Returns:
+        float: Maximum mean value (MVC value) for the channel.
+    """
     window_size = int(window_duration * sampling_frequency)
     max_mean_value = float("-inf")
 
@@ -54,6 +83,15 @@ def calculate_mvc_for_channel(data, sampling_frequency, window_duration=0.5):
 
 
 def _calculate_mvc_for_each_channel_fixed(directory_path):
+    """
+    Calculate MVC values for each channel using a fixed selection of files.
+
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+
+    Returns:
+        tuple: A tuple containing an array of MVC values for each channel and a list of selected file paths.
+    """
     selected_file_paths = auto_select_files_for_channels(directory_path)
     channel_names = get_channel_names(directory_path)
 
@@ -71,6 +109,16 @@ def _calculate_mvc_for_each_channel_fixed(directory_path):
 
 
 def _calculate_mvc_for_each_channel_automatic(directory_path):
+    """
+    Calculate MVC values for each channel using an automatic selection of files.
+    The files are selected based on which ones have the highest MVC values for a given channel.
+
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+
+    Returns:
+        tuple: A tuple containing an array of MVC values for each channel and a list of exercise names corresponding to each value.
+    """
     mvc_datas, mvc_filenames = get_mvc_files(directory_path)
     channel_names = get_channel_names(directory_path)
 
@@ -101,6 +149,16 @@ use_automatic = False  # Set to False to use the "fixed" version. You can change
 
 
 def calculate_mvc_for_each_channel(directory_path, use_automatic=False):
+    """
+    Calculate MVC values for each channel, either using a fixed or automatic file selection.
+
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+        use_automatic (bool, optional): If True, uses automatic file selection. Default is False for fixed file selection.
+
+    Returns:
+        tuple: MVC values for each channel and corresponding file paths or exercise names.
+    """
     if use_automatic:
         return _calculate_mvc_for_each_channel_automatic(directory_path)
     else:
@@ -108,8 +166,15 @@ def calculate_mvc_for_each_channel(directory_path, use_automatic=False):
 
 
 def select_files_for_channels_gui(directory_path):
-    """Prompt the user to select specific files for each channel using a GUI."""
+    """
+    Prompt the user via a GUI to select specific files for each channel.
 
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+
+    Returns:
+        list: A list of selected filenames for each channel.
+    """
     root = tk.Tk()
     root.withdraw()  # Hide the main window
 
@@ -133,7 +198,15 @@ def select_files_for_channels_gui(directory_path):
 
 
 def auto_select_files_for_channels(directory_path):
-    """Automatically select files for each channel based on pose names."""
+    """
+    Automatically select files for each channel based on pose names.
+
+    Args:
+        directory_path (str): Path to the directory containing MVC files.
+
+    Returns:
+        list: A list of selected filenames for each pose.
+    """
 
     # pose_names = [
     #     "Dolphin",
@@ -178,6 +251,20 @@ def auto_select_files_for_channels(directory_path):
 def plot_mvc_mapping_table(
     channel_names, max_mvc_filenames, mvc_values, participant_type, save_directory
 ):
+    """
+    Create and save a table mapping MVC values and filenames to channels.
+
+    Args:
+        channel_names (list): List of channel names.
+        max_mvc_filenames (list): List of filenames containing the maximum MVC values for each channel.
+        mvc_values (list or ndarray): List of MVC values.
+        participant_type (str): Type of the participant (e.g., "Beginner", "Expert").
+        save_directory (str): Directory where the table should be saved.
+
+    Returns:
+        None: The table is saved to the specified directory and not returned.
+    """
+
     fig, ax = plt.subplots(figsize=(12, 6))  # Adjust figsize for an extra column
     stripped_mvc_filenames = [os.path.basename(f) for f in max_mvc_filenames]
     rows = list(zip(channel_names, stripped_mvc_filenames, mvc_values))
