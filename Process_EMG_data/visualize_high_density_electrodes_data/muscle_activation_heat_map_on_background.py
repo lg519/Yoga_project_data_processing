@@ -63,7 +63,7 @@ def plot_combined_heatmap_on_bg(
             grid[row][col] = activations[i]
 
         # Convert grid to RGB image using viridis colormap
-        grid_colored = plt.cm.viridis(grid / np.max(grid))
+        grid_colored = plt.cm.viridis(grid / gridwise_max[idx])
         grid_rgb = (grid_colored[:, :, :3] * 255).astype(np.uint8)
 
         # Create Affine transformation for grid
@@ -142,6 +142,44 @@ def compute_exercise_activations(filenames, channel_indices, mvc_values):
             )
 
     return activations_per_exercise
+
+
+def get_gridwise_max(activations_per_exercise, grids):
+    """
+    Get the 95th percentile of activations for each grid.
+
+    The function processes activations for each exercise and returns the 95th
+    percentile of activations for each grid. This is used to determine the upper
+    limit for the color scale in heatmaps.
+
+    Parameters:
+    - activations_per_exercise (dict): Dictionary with exercise names as keys and
+                                      activations as values.
+    - grids (list): List of grids where each grid is a tuple with grid number
+                    and active channels.
+
+    Returns:
+    - gridwise_max (list): List containing the 95th percentile of activations for
+                           each grid.
+    """
+
+    gridwise_data = [[] for _ in grids]
+
+    for exercise_name, all_activations in activations_per_exercise.items():
+        for rep_index in range(len(all_activations[0])):
+            for index, (grid_num, active_channels) in enumerate(grids):
+                activations = [
+                    np.mean(all_activations[i][rep_index])
+                    for i in range(
+                        sum(len(grid[1]) for grid in grids[:index]),
+                        sum(len(grid[1]) for grid in grids[: index + 1]),
+                    )
+                ]
+                gridwise_data[index].extend(activations)
+
+    gridwise_max = [np.percentile(data, 95) for data in gridwise_data]
+
+    return gridwise_max
 
 
 if __name__ == "__main__":
@@ -246,6 +284,8 @@ if __name__ == "__main__":
     save_directory = os.path.join(directory_path, "figures_heatmaps_on_background")
     os.makedirs(save_directory, exist_ok=True)
 
+    gridwise_max = get_gridwise_max(activations_per_exercise, grids)
+
     for exercise_name, all_activations in activations_per_exercise.items():
         for rep_index in range(len(all_activations[0])):
             combined_activations = [
@@ -264,24 +304,24 @@ if __name__ == "__main__":
             )
 
             # YT1_testing_7_MAT config
-            # positions = [
-            #     (1300, 2400),
-            #     (1350, 1400),
-            #     (1040, 1680),
-            # ]  # adjust these as required
-            # background_path = "Process_EMG_data/images/YT1_back.jpg"
-            # scales = [60, 60, 60]  # adjust these scales as required
-            # rotations = [70, -10, 100]
+            positions = [
+                (1300, 2400),
+                (1350, 1400),
+                (1040, 1680),
+            ]  # adjust these as required
+            background_path = "Process_EMG_data/images/YT1_back.jpg"
+            scales = [60, 60, 60]  # adjust these scales as required
+            rotations = [70, -10, 100]
 
             # YT1_testing_6_MAT config
-            positions = [
-                (840, 750),
-                (215, 660),
-                (215, 600),
-            ]  # adjust these as required
-            background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
-            scales = [5.8, 5.8, 5.8]  # adjust these scales as required
-            rotations = [180, 0, 0]
+            # positions = [
+            #     (840, 750),
+            #     (215, 660),
+            #     (215, 600),
+            # ]  # adjust these as required
+            # background_path = "Process_EMG_data/images/Human_Body_Diagram.jpg"
+            # scales = [5.8, 5.8, 5.8]  # adjust these scales as required
+            # rotations = [180, 0, 0]
 
             plot_combined_heatmap_on_bg(
                 combined_activations,

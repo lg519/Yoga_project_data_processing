@@ -14,7 +14,47 @@ from Process_EMG_data.helpers.utilis import (
 )
 
 
-def plot_combined_heatmap(activations_list, active_channels_list, title, save_path):
+def get_gridwise_max(activations_per_exercise, grids):
+    """
+    Get the 95th percentile of activations for each grid.
+
+    The function processes activations for each exercise and returns the 95th
+    percentile of activations for each grid. This is used to determine the upper
+    limit for the color scale in heatmaps.
+
+    Parameters:
+    - activations_per_exercise (dict): Dictionary with exercise names as keys and
+                                      activations as values.
+    - grids (list): List of grids where each grid is a tuple with grid number
+                    and active channels.
+
+    Returns:
+    - gridwise_max (list): List containing the 95th percentile of activations for
+                           each grid.
+    """
+
+    gridwise_data = [[] for _ in grids]
+
+    for exercise_name, all_activations in activations_per_exercise.items():
+        for rep_index in range(len(all_activations[0])):
+            for index, (grid_num, active_channels) in enumerate(grids):
+                activations = [
+                    np.mean(all_activations[i][rep_index])
+                    for i in range(
+                        sum(len(grid[1]) for grid in grids[:index]),
+                        sum(len(grid[1]) for grid in grids[: index + 1]),
+                    )
+                ]
+                gridwise_data[index].extend(activations)
+
+    gridwise_max = [np.percentile(data, 95) for data in gridwise_data]
+
+    return gridwise_max
+
+
+def plot_combined_heatmap(
+    activations_list, active_channels_list, title, save_path, vmax_list
+):
     """
     Plot and save a combined heatmap for a list of muscle activations.
 
@@ -23,6 +63,7 @@ def plot_combined_heatmap(activations_list, active_channels_list, title, save_pa
         - active_channels_list (list of lists): List of active channels for each grid.
         - title (str): Combined title for the heatmaps.
         - save_path (str): Path to save the combined heatmap.
+        - vmax_list (list): List of maximum values (vmax) for color scaling of each grid's heatmap.
 
     Returns:
         None. Saves the heatmap to the specified path.
@@ -37,7 +78,9 @@ def plot_combined_heatmap(activations_list, active_channels_list, title, save_pa
             row = (ch - 1) // 8
             col = (ch - 1) % 8
             grid[row][col] = activations[i]
-        im = ax.imshow(grid, cmap="viridis", interpolation="nearest")
+        im = ax.imshow(
+            grid, cmap="viridis", interpolation="nearest", vmax=vmax_list[idx]
+        )
         for i, ch in enumerate(active_channels):
             row = (ch - 1) // 8
             col = (ch - 1) % 8
@@ -194,6 +237,8 @@ if __name__ == "__main__":
     save_directory = os.path.join(directory_path, "figures_heatmaps")
     os.makedirs(save_directory, exist_ok=True)
 
+    gridwise_max = get_gridwise_max(activations_per_exercise, grids)
+
     for exercise_name, all_activations in activations_per_exercise.items():
         for rep_index in range(len(all_activations[0])):
             combined_activations = [
@@ -215,4 +260,5 @@ if __name__ == "__main__":
                 [grid[1] for grid in grids],
                 f"{participant_type} - Combined Grids - {exercise_name} - Rep {rep_index + 1}",
                 heatmap_save_path,
+                gridwise_max,
             )
