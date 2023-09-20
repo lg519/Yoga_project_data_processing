@@ -89,6 +89,33 @@ def tuple_to_rgba(color_tuple):
     return f"rgba({int(color_tuple[0]*255)}, {int(color_tuple[1]*255)}, {int(color_tuple[2]*255)}, {color_tuple[3]})"
 
 
+def is_outlier(value, mean, std_dev, multiplier=2):
+    """
+    Determine if a value is an outlier based on standard deviations.
+
+    Parameters:
+    - value (float): The value to be checked.
+    - mean (float): The mean of the dataset.
+    - std_dev (float): The standard deviation of the dataset.
+    - multiplier (float, optional): The multiplier for the standard deviation. Determines the range outside
+      of which values are considered outliers. Default is 2.
+
+    Returns:
+    - bool: True if the value is an outlier, otherwise False.
+
+    Example:
+    >>> is_outlier(10, 5, 2)
+    False
+    >>> is_outlier(10, 5, 1)
+    True
+    """
+
+    lower_bound = mean - multiplier * std_dev
+    upper_bound = mean + multiplier * std_dev
+
+    return value < lower_bound or value > upper_bound
+
+
 def plot_muscle_activation_per_exercise_different_reps(
     overall_activations_by_exercise,
     channel_names,
@@ -117,7 +144,18 @@ def plot_muscle_activation_per_exercise_different_reps(
 
     fig = go.Figure()
 
-    # Loop over all directories (i.e., color groups)
+    # Get all mean values for outlier detection
+    all_mean_values = []
+    for color, reps_by_color in activations_by_directory.items():
+        for rep_index in range(len(reps_by_color[0])):
+            for channel in range(len(channel_names)):
+                if len(reps_by_color[channel]) > rep_index:
+                    all_mean_values.append(np.mean(reps_by_color[channel][rep_index]))
+
+    # Calculate mean and standard deviation
+    mean_value = np.mean(all_mean_values)
+    std_dev_value = np.std(all_mean_values)
+
     for color, reps_by_color in activations_by_directory.items():
         num_reps = len(reps_by_color[0])
 
@@ -129,9 +167,18 @@ def plot_muscle_activation_per_exercise_different_reps(
                 for channel in range(len(channel_names))
             ]
 
-            trace_name = (
-                os.path.basename(color).split("_")[0] if rep_index == 0 else None
-            )
+            # Check for outliers
+            if any(
+                is_outlier(val, mean_value, std_dev_value)
+                for val in activations_for_rep
+            ):
+                continue  # Skip this rep if any channel has an outlier value
+
+            # Normalize activations_for_rep by its norm
+            norm = np.linalg.norm(activations_for_rep)
+            activations_for_rep = [value / norm for value in activations_for_rep]
+
+            trace_name = os.path.basename(color).split("_")[0]
 
             fig.add_trace(
                 go.Scatterpolar(
@@ -141,9 +188,6 @@ def plot_muscle_activation_per_exercise_different_reps(
                     marker=dict(color=tuple_to_rgba(colors_by_directory[color])),
                     line=dict(color=tuple_to_rgba(colors_by_directory[color])),
                     opacity=0.55,
-                    showlegend=(
-                        rep_index == 0
-                    ),  # Only show in the legend for the first rep
                 )
             )
 
